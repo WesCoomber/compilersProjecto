@@ -11,3 +11,7 @@ helloWorldTest.py:3:5: F841 local variable 'a' is assigned to but never used
 helloWorldTest.py:7:11: A101 use lists for data that have order
 helloWorldTest.py:15:3: A111 wesTEST redundant parenthesis for if statement
 helloWorldTest.py:19:3: A111 wesTEST redundant parenthesis for if statement
+
+TODO:
+Warning for if(0) and if(False), everything inside that if statement is dead code
+Warning for dead code after sys.exit

@@ -109,6 +109,9 @@ setup(
             'A1   = flake8_eyeo:check_quotes',
             'A111 = flake8_eyeo:check_redundant_parenthesis',
             'A303 = flake8_eyeo:check_non_default_encoding',
+            'A304 = flake8_eyeo:check_if0',
+            'A305 = flake8_eyeo:check_if_false',
+            'A306 = flake8_eyeo:check_sys_exit'
         ],
     },
     cmdclass={'test': TestCommand}

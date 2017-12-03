@@ -374,6 +374,19 @@ def check_non_default_encoding(physical_line, line_number):
         return (0, 'A303 non-default file encoding')
 
 
+def check_if0(physical_line, line_number):
+    if 1 and re.search(r'if\(0\):', physical_line):
+        return (0, 'A304 dead code after ' + physical_line)
+
+def check_if_false(physical_line, line_number):
+    if 1 and re.search(r'if\(False\):', physical_line):
+        return (0, 'A305 dead code after ' + physical_line)
+
+def check_sys_exit(physical_line, line_number):
+    if 1 and re.search(r'sys.exit\(\)', physical_line):
+        return (0, 'A306 dead code after ' + physical_line)
+
+
 def check_quotes(logical_line, tokens, previous_logical, checker_state):
     first_token = True
 
@@ -474,12 +487,12 @@ def check_redundant_parenthesis(logical_line, tokens):
 
     return []
 
-def check_test():
-    yield [(1, 'A199 TestWarning')]
+#def check_test():
+#    return [(1, 'A199 TestWarning')]
 
 
 
-for checker in [check_ast, check_non_default_encoding,
-                check_quotes, check_redundant_parenthesis, check_test]:
+for checker in [check_ast, check_non_default_encoding, check_if0, check_if_false, check_sys_exit,
+                check_quotes, check_redundant_parenthesis ]:
     checker.name = 'eyeo'
     checker.version = __version__

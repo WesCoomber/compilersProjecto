@@ -1,3 +1,5 @@
+import sys
+
 def double(x):
     y = x * 2
     a = 1
@@ -16,7 +18,14 @@ if(0):
     print('Constant Unreachable Print statement!' + str(z))
 
 
+if(False):
+    print('Second Constant Unreachable Print statement!' + str(z))
+
+
 if(z):
     print('Unreachable Print statement!' + str(z))
 
 print('3 doubled is: ' + str(double(3)))
+
+sys.exit()
+print('6 doubled is: ' + str(double(6)))
