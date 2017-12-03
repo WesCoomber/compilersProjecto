@@ -382,6 +382,7 @@ def check_if_false(physical_line, line_number):
     if 1 and re.search(r'if\(False\):', physical_line):
         return (0, 'A305 dead code after ' + physical_line)
 
+#check indentation to see where function that contains this line ends and only flag lines in the function after the warning line
 def check_sys_exit(physical_line, line_number):
     if 1 and re.search(r'sys.exit\(\)', physical_line):
         return (0, 'A306 dead code after ' + physical_line)
