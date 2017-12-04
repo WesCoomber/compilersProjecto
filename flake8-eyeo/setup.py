@@ -111,7 +111,8 @@ setup(
             'A303 = flake8_eyeo:check_non_default_encoding',
             'A304 = flake8_eyeo:check_if0',
             'A305 = flake8_eyeo:check_if_false',
-            'A306 = flake8_eyeo:check_sys_exit'
+            'A306 = flake8_eyeo:check_sys_exit',
+            'A370 = flake8_eyeo:check_insecure_hash'
         ],
     },
     cmdclass={'test': TestCommand}

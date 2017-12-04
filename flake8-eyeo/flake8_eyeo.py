@@ -378,11 +378,14 @@ def check_if0(physical_line, line_number):
     if 1 and re.search(r'if\(0\):', physical_line):
         return (0, 'A304 dead code after ' + physical_line)
 
+
 def check_if_false(physical_line, line_number):
     if 1 and re.search(r'if\(False\):', physical_line):
         return (0, 'A305 dead code after ' + physical_line)
 
-#check indentation to see where function that contains this line ends and only flag lines in the function after the warning line
+
+# check indentation to see where function that contains this line ends and only
+# flag lines in the function after the warning line
 def check_sys_exit(physical_line, line_number):
     if 1 and re.search(r'sys.exit\(\)', physical_line):
         return (0, 'A306 dead code after ' + physical_line)
@@ -488,12 +491,14 @@ def check_redundant_parenthesis(logical_line, tokens):
 
     return []
 
-#def check_test():
-#    return [(1, 'A199 TestWarning')]
+
+def check_insecure_hash(physical_line):
+    if re.search(r'(md2|md4|md5|sha)', physical_line, re.IGNORECASE):
+        return (0, 'A370 insecure hash function after ' + physical_line)
 
 
-
-for checker in [check_ast, check_non_default_encoding, check_if0, check_if_false, check_sys_exit,
-                check_quotes, check_redundant_parenthesis ]:
+for checker in [check_ast, check_non_default_encoding, check_if0,
+                check_if_false, check_sys_exit, check_quotes,
+                check_redundant_parenthesis, check_insecure_hash]:
     checker.name = 'eyeo'
     checker.version = __version__
