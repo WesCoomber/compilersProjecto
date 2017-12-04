@@ -493,12 +493,20 @@ def check_redundant_parenthesis(logical_line, tokens):
 
 
 def check_insecure_hash(physical_line):
-    if re.search(r'(md2|md4|md5|sha)', physical_line, re.IGNORECASE):
-        return (0, 'A370 insecure hash function after ' + physical_line)
+    match = re.search(r'(md2|md4|md5|sha)', physical_line, re.IGNORECASE)
+    if match:
+        return (0, 'A370 insecure hash function ' + match.group(0))
+
+
+def check_insecure_cipher_mode(physical_line):
+    match = re.search(r'CBC|ECB', physical_line, re.IGNORECASE)
+    if match:
+        return (0, 'A371 insecure cipher block mode ' + match.group(0))
 
 
 for checker in [check_ast, check_non_default_encoding, check_if0,
                 check_if_false, check_sys_exit, check_quotes,
-                check_redundant_parenthesis, check_insecure_hash]:
+                check_redundant_parenthesis, check_insecure_hash,
+                check_insecure_cipher_mode]:
     checker.name = 'eyeo'
     checker.version = __version__

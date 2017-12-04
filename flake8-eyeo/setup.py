@@ -112,7 +112,8 @@ setup(
             'A304 = flake8_eyeo:check_if0',
             'A305 = flake8_eyeo:check_if_false',
             'A306 = flake8_eyeo:check_sys_exit',
-            'A370 = flake8_eyeo:check_insecure_hash'
+            'A370 = flake8_eyeo:check_insecure_hash',
+            'A371 = flake8_eyeo:check_insecure_cipher_mode'
         ],
     },
     cmdclass={'test': TestCommand}
