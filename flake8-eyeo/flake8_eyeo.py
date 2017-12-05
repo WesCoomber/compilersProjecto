@@ -67,6 +67,11 @@ def get_identifier(node):
 def get_statement(node):
     return type(node).__name__.lower()
 
+class FuncLister(ast.NodeVisitor):
+    def visit_FunctionDef(self, node):
+        print("test: " + node.name)
+        self.generic_visit(node)
+
 
 class TreeVisitor(ast.NodeVisitor):
     Scope = collections.namedtuple('Scope', ['node', 'names', 'globals'])
@@ -74,6 +79,7 @@ class TreeVisitor(ast.NodeVisitor):
     def __init__(self):
         self.errors = []
         self.scope_stack = []
+        
 
     def _visit_block(self, nodes, block_required=False,
                      nodes_required=True, docstring=False,
@@ -196,6 +202,10 @@ class TreeVisitor(ast.NodeVisitor):
     def visit_FunctionDef(self, node):
         self._visit_stored_name(node, node.name)
         self._visit_block(node.body, block_required=True, docstring=True)
+
+        #test code that prints out the function names in the flaked code
+        #print(node.name)
+        #self.generic_visit(node)
 
         scope = self._visit_with_scope(node)
         global_names = set()
@@ -364,6 +374,8 @@ class TreeVisitor(ast.NodeVisitor):
 def check_ast(tree):
     visitor = TreeVisitor()
     visitor.visit(tree)
+    visitor2 = FuncLister()
+    visitor2.visit(tree)
 
     for node, error in visitor.errors:
         yield (node.lineno, node.col_offset, error, None)

@@ -1,5 +1,6 @@
 import sys
 
+
 def double(x):
     y = x * 2
     a = 1
