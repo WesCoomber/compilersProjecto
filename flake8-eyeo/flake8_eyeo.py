@@ -69,9 +69,43 @@ def get_statement(node):
 
 class FuncLister(ast.NodeVisitor):
     def visit_FunctionDef(self, node):
-        print("test: " + node.name)
+        print("FunctionDef: " + node.name)
         self.generic_visit(node)
-
+    def visit_If(self, node):
+        print("If.test: " + str(node.test))
+        #checks if the If node's test node has the attribute n (num value) and prints it if it exists
+        if hasattr(node.test, 'n'):
+            print("If.test.n: " + str(node.test.n))
+        if hasattr(node.test, 'id'):
+            print("If.test.id: " + str(node.test.id))
+        bodylist = node.body
+        for codeline in bodylist:
+            print(type(codeline))
+            if hasattr(codeline, 'n'):
+                print("body.codeline.n: " + str(codeline.n))
+            if hasattr(codeline, 'id'):
+                print("body.codeline.id: " + str(codeline.id))
+            if hasattr(codeline, 'name'):
+                print("body.codeline.name: " + str(codeline.name))
+            if hasattr(codeline, 'value'):
+                print("body.codeline.value: " + str(codeline.value))
+            if hasattr(codeline, 'func'):
+                print("body.codeline.func: " + str(codeline.func))
+            if hasattr(codeline, 's'):
+                print("body.codeline.s: " + str(codeline.s))
+            if hasattr(codeline, 'values'):
+                print("body.codeline.values: " + str(codeline.values))
+                #if type(codeline) is ast.Print
+                if isinstance(node, ast.Print):
+                    print(type(codeline))
+            #print(codeline)
+        print("If.body: " + str(node.body))
+        print("If.orelse: " + str(node.orelse))
+        
+        #fields = ast.dump(node)
+        #print("If.ast.dump: " + str(fields))
+        self.generic_visit(node)
+        
 
 class TreeVisitor(ast.NodeVisitor):
     Scope = collections.namedtuple('Scope', ['node', 'names', 'globals'])
@@ -144,10 +178,25 @@ class TreeVisitor(ast.NodeVisitor):
                             'A206 Extraneous else statement after {} '
                             'in {}-clause'.format(statement, clause)))
 
+    def _check_if(self, node):
+        warning = False
+        if hasattr(node.test, 'n'):
+            print("If.test.n: " + str(node.test.n))
+            if node.test.n == 0:
+                warning = True
+        if hasattr(node.test, 'id'):
+            print("If.test.id: " + str(node.test.id))
+            if node.test.id == "False":
+                warning = True
+        if warning == True:
+            statement = get_statement(node)
+            self.errors.append((node, 'A420 dead code after ' '{}'.format(statement)))
+
     def visit_If(self, node):
         self._visit_block(node.body, block_required=bool(node.orelse))
         self._visit_block(node.orelse)
         self._check_redundant_else(node, [node], 'if')
+        self._check_if(node)
         self.generic_visit(node)
 
     def visit_Try(self, node):
@@ -374,8 +423,8 @@ class TreeVisitor(ast.NodeVisitor):
 def check_ast(tree):
     visitor = TreeVisitor()
     visitor.visit(tree)
-    visitor2 = FuncLister()
-    visitor2.visit(tree)
+    #visitor2 = FuncLister()
+    #visitor2.visit(tree)
 
     for node, error in visitor.errors:
         yield (node.lineno, node.col_offset, error, None)
