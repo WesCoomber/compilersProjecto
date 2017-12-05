@@ -180,17 +180,26 @@ class TreeVisitor(ast.NodeVisitor):
 
     def _check_if(self, node):
         warning = False
+        zero = False
         if hasattr(node.test, 'n'):
-            print("If.test.n: " + str(node.test.n))
+            #print("If.test.n: " + str(node.test.n))
             if node.test.n == 0:
                 warning = True
+                zero = True
         if hasattr(node.test, 'id'):
-            print("If.test.id: " + str(node.test.id))
+            #print("If.test.id: " + str(node.test.id))
             if node.test.id == "False":
                 warning = True
         if warning == True:
             statement = get_statement(node)
-            self.errors.append((node, 'A420 dead code after ' '{}'.format(statement)))
+            tempStr = 'temp'
+            #self.errors.append((node, 'A420 dead code after ' '{}'.format(statement)) + 'statement')
+            if zero == True:
+                tempStr = "A420 dead code after if(0) statement."
+            else:
+                tempStr = "A420 dead code after if(False) statement."
+            #self.errors.append((node, 'A420 dead code after ' '{}'.format(statement)) + 'statement')
+            self.errors.append((node, tempStr))
 
     def visit_If(self, node):
         self._visit_block(node.body, block_required=bool(node.orelse))
@@ -436,12 +445,12 @@ def check_non_default_encoding(physical_line, line_number):
 
 
 def check_if0(physical_line, line_number):
-    if 1 and re.search(r'if\(0\):', physical_line):
+    if 0 and re.search(r'if\(0\):', physical_line):
         return (0, 'A304 dead code after ' + physical_line)
 
 
 def check_if_false(physical_line, line_number):
-    if 1 and re.search(r'if\(False\):', physical_line):
+    if 0 and re.search(r'if\(False\):', physical_line):
         return (0, 'A305 dead code after ' + physical_line)
 
 
