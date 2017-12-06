@@ -13,11 +13,6 @@ file = sys.argv[1]
 
 infile = open(file, 'r')
 
-# Clear the outfile's old data, and re-open it for appending
-outfile = open('outfile', 'w')
-outfile.write('')
-outfile = open('outfile', 'a')
-
 new_bugs = 0
 old_bugs = 0
 total_lines = 0
@@ -28,7 +23,6 @@ for line in infile:
     if match:
         new_bugs += 1
     else:
-        outfile.write(line)
         old_bugs += 1
 
 
