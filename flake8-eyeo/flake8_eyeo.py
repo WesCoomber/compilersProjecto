@@ -113,7 +113,19 @@ class TreeVisitor(ast.NodeVisitor):
     def __init__(self):
         self.errors = []
         self.scope_stack = []
+        self.loops = 0
+        self.hoistable_dict = {}
+        self.stored_dict = {}
         
+    def _check_hoistable_line(self, node):
+        for key in self.hoistable_dict:
+            if (self.hoistable_dict[key] == self.loops and ((key not in self.stored_dict) or (self.loops > self.stored_dict[key]))):
+                self.errors.append((node, "A200 assignment of constant value to variable can be hoisted from loop"))
+
+        self.hoistable_dict = {}
+        self.stored_dict = {}
+
+        return
 
     def _visit_block(self, nodes, block_required=False,
                      nodes_required=True, docstring=False,
@@ -301,15 +313,28 @@ class TreeVisitor(ast.NodeVisitor):
         self.generic_visit(node)
 
     def visit_For(self, node):
+        self.loops = self.loops + 1
         self._visit_iter(node.iter)
         self._visit_block(node.body, block_required=True)
         self._visit_block(node.orelse)
         self.generic_visit(node)
+        self._check_hoistable_line(node)
+        self.loops = self.loops - 1
+        if (self.loops == 0):
+            self.stored_dict = {}
+            self.hoistable_dict = {}
+            
 
     def visit_While(self, node):
+        self.loops = self.loops + 1
         self._visit_block(node.body, block_required=True)
         self._visit_block(node.orelse)
         self.generic_visit(node)
+        self._check_hoistable_line(node)
+        self.loops = self.loops - 1
+        if (self.loops == 0):
+            self.stored_dict = {}
+            self.hoistable_dict = {}
 
     def visit_BinOp(self, node):
         if isinstance(node.op, ast.Mod) and isinstance(node.left, ast.Str):
@@ -398,6 +423,12 @@ class TreeVisitor(ast.NodeVisitor):
     visit_ImportFrom = visit_Import
 
     def visit_Assign(self, node):
+        if (len(node.targets) == 1 and isinstance(node.targets[0], ast.Name)
+                and (isinstance(node.value, ast.Str) or isinstance(node.value, ast.Num)) and self.loops > 0):
+            self.hoistable_dict[node.targets[0].id] = self.loops
+        elif (self.loops > 0 and len(node.targets) == 1 and isinstance(node.targets[0], ast.Name)):
+            self.stored_dict[node.targets[0].id] = self.loops
+
         if isinstance(node.value, ast.BinOp) and len(node.targets) == 1:
             target = node.targets[0]
             left_is_target = (isinstance(target, ast.Name) and
