@@ -190,64 +190,78 @@ class TreeVisitor(ast.NodeVisitor):
                             'A206 Extraneous else statement after {} '
                             'in {}-clause'.format(statement, clause)))
 
+    #this method is called whenever we visit an 'If' statement while traversing the Abstract Syntax Tree in the TreeVisitor class
+    #this method checks whether the 'If' statement contains unconditionally unreachable code in its body
     def _check_if(self, node):
         warning = False
         zero = False
-        if hasattr(node.test, 'n'):
-            #print("If.test.n: " + str(node.test.n))
-            if node.test.n == 0:
-                warning = True
-                zero = True
-        if hasattr(node.test, 'id'):
-            #print("If.test.id: " + str(node.test.id))
-            if node.test.id == "False":
-                warning = True
-        if warning == True:
-            statement = get_statement(node)
-            tempStr = 'temp'
-            #self.errors.append((node, 'A420 dead code after ' '{}'.format(statement)) + 'statement')
-            if zero == True:
-                tempStr = "A421 dead code after if(0) statement."
-            else:
-                tempStr = "A422 dead code after if(False) statement."
-            #self.errors.append((node, 'A420 dead code after ' '{}'.format(statement)) + 'statement')
-            
-            tempStr = tempStr + '\n' + "startOfDeadCode block for if() statement starting at line " + str(node.lineno) + "."
-            bodylist = node.body
-            for codeline in bodylist:
-                #print(type(codeline))
-                if hasattr(codeline, 'n'):
-                    #print("body.codeline.n: " + str(codeline.n))
-                    tempStr = tempStr + '\n    ' + str(type(codeline)) + str(codeline.n)
-                if hasattr(codeline, 'id'):
-                    #print("body.codeline.id: " + str(codeline.id))
-                    tempStr = tempStr + '\n    ' + str(type(codeline)) + str(codeline.id)
-                if hasattr(codeline, 'name'):
-                    #print("body.codeline.name: " + str(codeline.name))
-                    tempStr = tempStr + '\n    ' + str(type(codeline)) + str(codeline.name)
-                if hasattr(codeline, 'value'):
-                    #print("body.codeline.value: " + str(codeline.value))
-                    tempStr = tempStr + '\n    ' + str(type(codeline)) + str(codeline.value)
-                if hasattr(codeline, 'func'):
-                    #print("body.codeline.func: " + str(codeline.func))
-                    tempStr = tempStr + '\n    ' + str(type(codeline)) + str(codeline.func)
-                if hasattr(codeline, 'list'):
-                    #print("body.codeline.func: " + str(codeline.func))
-                    tempStr = tempStr + '\n    ' + str(type(codeline)) + str(codeline.list)
-                if hasattr(codeline, 'target'):
-                    #print("body.codeline.func: " + str(codeline.func))
-                    tempStr = tempStr + '\n    ' + str(type(codeline)) + str(codeline.target)
-                    #tempTarget = node(codeline.target)
-                    #if hasattr(tempTarget, 'id')
-                    #    tempStr = tempStr + str((codeline.target).id)
-                if hasattr(codeline, 's'):
-                    #print("body.codeline.s: " + str(codeline.s))
-                    tempStr = tempStr + '\n    ' + str(type(codeline)) + str(codeline.s)
-                if hasattr(codeline, 'values'):
-                    #print("body.codeline.values: " + str(codeline.values))
-                    tempStr = tempStr + '\n    ' + str(type(codeline)) + str(codeline.values) 
-            tempStr = tempStr + '\n' + "endOfDeadCode block for if() statement starting at line " + str(node.lineno) + ".\n"
-            self.errors.append((node, tempStr))
+
+        #check if the ast.node has an attribute called 'test'
+        if hasattr(node, 'test'):
+            #check if the ast.node.test has a constant integer/float/complex value  
+            if hasattr(node.test, 'n'):
+                #print("If.test.n: " + str(node.test.n))
+                #if the constant 'n' num value is '0' then we should warn the programmer about potentially dead code
+                if node.test.n == 0:
+                    warning = True
+                    zero = True
+            #check if the ast.node.test has a string called 'id', containing the variable name
+            if hasattr(node.test, 'id'):
+                #print("If.test.id: " + str(node.test.id))
+                #if the string 'id' value is named "False" then we should warn the programmer about potentially dead code
+                if node.test.id == "False":
+                    warning = True
+            #one of our checks has flagged a node with a dead code warning
+            if warning == True:
+                statement = get_statement(node)
+                tempStr = 'temp'
+                #self.errors.append((node, 'A420 dead code after ' '{}'.format(statement)) + 'statement')
+                #if the "If(0)" check raised a flag then prepare a string warning for the self.errors log
+                if zero == True:
+                    tempStr = "A421 dead code after if(0) statement."
+                #else the warning was raised and the only other way to raise the warning boolean is for there to be a "If(False)" warning, so we prepare the appropraite warning string
+                else:
+                    tempStr = "A422 dead code after if(False) statement."
+                #self.errors.append((node, 'A420 dead code after ' '{}'.format(statement)) + 'statement')
+                
+                #this block of code adds the AST representation of the block of potentially dead code within the flagged "IF" statement's scope
+                tempStr = tempStr + '\n' + "startOfDeadCode block for if() statement starting at line " + str(node.lineno) + "."
+                bodylist = node.body
+                for codeline in bodylist:
+                    #print(type(codeline))
+                    if hasattr(codeline, 'n'):
+                        #print("body.codeline.n: " + str(codeline.n))
+                        tempStr = tempStr + '\n    ' + str(type(codeline)) + str(codeline.n)
+                    if hasattr(codeline, 'id'):
+                        #print("body.codeline.id: " + str(codeline.id))
+                        tempStr = tempStr + '\n    ' + str(type(codeline)) + str(codeline.id)
+                    if hasattr(codeline, 'name'):
+                        #print("body.codeline.name: " + str(codeline.name))
+                        tempStr = tempStr + '\n    ' + str(type(codeline)) + str(codeline.name)
+                    if hasattr(codeline, 'value'):
+                        #print("body.codeline.value: " + str(codeline.value))
+                        tempStr = tempStr + '\n    ' + str(type(codeline)) + str(codeline.value)
+                    if hasattr(codeline, 'func'):
+                        #print("body.codeline.func: " + str(codeline.func))
+                        tempStr = tempStr + '\n    ' + str(type(codeline)) + str(codeline.func)
+                    if hasattr(codeline, 'list'):
+                        #print("body.codeline.func: " + str(codeline.func))
+                        tempStr = tempStr + '\n    ' + str(type(codeline)) + str(codeline.list)
+                    if hasattr(codeline, 'target'):
+                        #print("body.codeline.func: " + str(codeline.func))
+                        tempStr = tempStr + '\n    ' + str(type(codeline)) + str(codeline.target)
+                        #tempTarget = node(codeline.target)
+                        #if hasattr(tempTarget, 'id')
+                        #    tempStr = tempStr + str((codeline.target).id)
+                    if hasattr(codeline, 's'):
+                        #print("body.codeline.s: " + str(codeline.s))
+                        tempStr = tempStr + '\n    ' + str(type(codeline)) + str(codeline.s)
+                    if hasattr(codeline, 'values'):
+                        #print("body.codeline.values: " + str(codeline.values))
+                        tempStr = tempStr + '\n    ' + str(type(codeline)) + str(codeline.values) 
+                tempStr = tempStr + '\n' + "endOfDeadCode block for if() statement starting at line " + str(node.lineno) + ".\n"
+                #Finally append all of our warning strings and the dead-code block to our self.errors log
+                self.errors.append((node, tempStr))
 
     def visit_If(self, node):
         self._visit_block(node.body, block_required=bool(node.orelse))
@@ -278,9 +292,11 @@ class TreeVisitor(ast.NodeVisitor):
         self._visit_block(node.body, block_required=True)
         self.generic_visit(node)
 
+    #This function visits all the expression nodes in the target file's python Abstract Syntax Tree
     def visit_Expr(self,node):
         foundSys = False
         #print(foundSys)
+        #first we iterate through the AST to find whether the sys module is used anywhere
         if hasattr(node, 'value'):
             if hasattr(node.value, 'func'):
                 if hasattr(node.value.func, 'value'):
@@ -289,6 +305,7 @@ class TreeVisitor(ast.NodeVisitor):
                         if tempExpression == "sys":
                             foundSys = True
 
+        #If the first check is true then we check each usage of the python sys module to see if the program is utilizing the sys.exit() functionality of the sys module
         foundExit = False
         if hasattr(node, 'value'):
             if hasattr(node.value, 'func'):
