@@ -7,15 +7,15 @@ def double(x):
     return y
 
 
-for i in (0, 1):
-    pass
+# for i in (0, 1):
+#    pass
 
 for x in range(0, 3):
     print('Hello, World!' + str(x))
 
-
+foo = 3
 z = 0
-if(0):
+if 0:
     print('Constant Unreachable Print statement!' + str(z))
     j = 70
     k = 0
@@ -25,12 +25,21 @@ if(0):
     k = 5
 
 
-if(False):
+if False:
     print('Second Constant Unreachable Print statement!' + str(z))
 
 
-if(z):
-    print('Unreachable Print statement!' + str(z))
+if z:
+    print('Unreachable Print statement! Single Indirect' + str(z))
+
+cero = foo
+if cero:
+    print('YES REACHABLE Print statement! Double Indirect' + str(z))
+
+cero = z
+
+if cero:
+    print('Unreachable Print statement! Double Indirect' + str(z))
 
 print('3 doubled is: ' + str(double(3)))
 

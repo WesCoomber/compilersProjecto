@@ -116,6 +116,7 @@ class TreeVisitor(ast.NodeVisitor):
         self.loops = 0
         self.hoistable_dict = {}
         self.stored_dict = {}
+        self.vars_dict = {}
         
     def _check_hoistable_line(self, node):
         for key in self.hoistable_dict:
@@ -195,6 +196,10 @@ class TreeVisitor(ast.NodeVisitor):
     def _check_if(self, node):
         warning = False
         zero = False
+        ffalse = False
+        indirZero = False
+
+        tempVName = "w"
 
         #check if the ast.node has an attribute called 'test'
         if hasattr(node, 'test'):
@@ -211,6 +216,23 @@ class TreeVisitor(ast.NodeVisitor):
                 #if the string 'id' value is named "False" then we should warn the programmer about potentially dead code
                 if node.test.id == "False":
                     warning = True
+                    ffalse = True
+                if node.test.id in self.vars_dict:
+                    #print(node.test.id)
+                    #print(self.vars_dict[node.test.id])
+                    if (self.vars_dict[node.test.id]) == 0:
+                        warning = True
+                        indirZero = True
+                        tempVName = node.test.id
+                    if self.vars_dict[node.test.id] in self.vars_dict:
+                        tempVal = self.vars_dict[node.test.id]
+                        #print(tempVal)
+                        if self.vars_dict[tempVal] == 0:
+                        #if (self.vars_dict[(self.vars_dict[node.test.id])] == 0:
+                            warning = True
+                            indirZero = True
+                            tempVName = node.test.id
+
             #one of our checks has flagged a node with a dead code warning
             if warning == True:
                 statement = get_statement(node)
@@ -220,9 +242,11 @@ class TreeVisitor(ast.NodeVisitor):
                 if zero == True:
                     tempStr = "A421 dead code after if(0) statement."
                 #else the warning was raised and the only other way to raise the warning boolean is for there to be a "If(False)" warning, so we prepare the appropraite warning string
-                else:
+                if ffalse == True:
                     tempStr = "A422 dead code after if(False) statement."
                 #self.errors.append((node, 'A420 dead code after ' '{}'.format(statement)) + 'statement')
+                if indirZero == True:
+                    tempStr = "A423 dead code after if(" + str(tempVName) + ") statement, indirect if(0) detected."
                 
                 #this block of code adds the AST representation of the block of potentially dead code within the flagged "IF" statement's scope
                 tempStr = tempStr + '\n' + "startOfDeadCode block for if() statement starting at line " + str(node.lineno) + "."
@@ -318,7 +342,7 @@ class TreeVisitor(ast.NodeVisitor):
         #bitwise 'AND' operation on the foundSys and foundExit booleans
         #This means we only do stuff if the sys python module is invoked, and the specific method from the sys module is exit()
         if (foundSys & foundExit):
-            tempStr = "A423 dead code after sys.exit() expression on line " + str(node.lineno) + ".\n"
+            tempStr = "A424 dead code after sys.exit() expression on line " + str(node.lineno) + ".\n"
             self.errors.append((node, tempStr))
 
 
@@ -510,6 +534,20 @@ class TreeVisitor(ast.NodeVisitor):
         elif (self.loops > 0 and len(node.targets) == 1 and isinstance(node.targets[0], ast.Name)):
             self.stored_dict[node.targets[0].id] = self.loops
 
+#        print(len(node.targets))
+#        print((node.targets[0]))
+
+        #visit every assignment node in our AST to get a dictionary of all the variables in our program and all the value stored in each variable
+        #dictionary that records this uses the var name "eg. X" as a key, and the value returned is the current value stored in that variable "X"
+        if (hasattr(node, 'targets') and len(node.targets) == 1):
+            if(hasattr(node, 'value')):
+                if(hasattr(node.value, 'n')):
+                    self.vars_dict[node.targets[0].id] = node.value.n
+                    #print(self.vars_dict[node.targets[0].id])
+                if(hasattr(node.value, 'id')):
+                    self.vars_dict[node.targets[0].id] = node.value.id
+                    #print(self.vars_dict[node.targets[0].id])
+
         if isinstance(node.value, ast.BinOp) and len(node.targets) == 1:
             target = node.targets[0]
             left_is_target = (isinstance(target, ast.Name) and
@@ -518,6 +556,9 @@ class TreeVisitor(ast.NodeVisitor):
             if left_is_target:
                 self.errors.append((node, 'A106 use augment assignment, '
                                           'e.g. x += y instead x = x + y'))
+#        for key in self.vars_dict:
+#            print key, self.vars_dict[key]
+#        print "\n"
         self.generic_visit(node)
 
     def _visit_hash_keys(self, nodes, what):
