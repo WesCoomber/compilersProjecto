@@ -17,6 +17,12 @@ for x in range(0, 3):
 z = 0
 if(0):
     print('Constant Unreachable Print statement!' + str(z))
+    j = 70
+    k = 0
+    dk = double(k)
+    for i in range(0, 70):
+        k += 1
+    k = 5
 
 
 if(False):

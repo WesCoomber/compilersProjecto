@@ -95,10 +95,10 @@ class FuncLister(ast.NodeVisitor):
                 print("body.codeline.s: " + str(codeline.s))
             if hasattr(codeline, 'values'):
                 print("body.codeline.values: " + str(codeline.values))
-                #if type(codeline) is ast.Print
+                
                 if isinstance(node, ast.Print):
                     print(type(codeline))
-            #print(codeline)
+            print(codeline)
         print("If.body: " + str(node.body))
         print("If.orelse: " + str(node.orelse))
         
@@ -195,10 +195,49 @@ class TreeVisitor(ast.NodeVisitor):
             tempStr = 'temp'
             #self.errors.append((node, 'A420 dead code after ' '{}'.format(statement)) + 'statement')
             if zero == True:
-                tempStr = "A420 dead code after if(0) statement."
+                tempStr = "A421 dead code after if(0) statement."
             else:
-                tempStr = "A420 dead code after if(False) statement."
+                tempStr = "A422 dead code after if(False) statement."
             #self.errors.append((node, 'A420 dead code after ' '{}'.format(statement)) + 'statement')
+            
+            bodylist = node.body
+            for codeline in bodylist:
+                #print(type(codeline))
+                if hasattr(codeline, 'n'):
+                    #print("body.codeline.n: " + str(codeline.n))
+                    tempStr = tempStr + '\n' + str(type(codeline)) + str(codeline.n)
+                if hasattr(codeline, 'id'):
+                    #print("body.codeline.id: " + str(codeline.id))
+                    tempStr = tempStr + '\n' + str(type(codeline)) + str(codeline.id)
+                if hasattr(codeline, 'name'):
+                    #print("body.codeline.name: " + str(codeline.name))
+                    tempStr = tempStr + '\n' + str(type(codeline)) + str(codeline.name)
+                if hasattr(codeline, 'value'):
+                    #print("body.codeline.value: " + str(codeline.value))
+                    tempStr = tempStr + '\n' + str(type(codeline)) + str(codeline.value)
+                if hasattr(codeline, 'func'):
+                    #print("body.codeline.func: " + str(codeline.func))
+                    tempStr = tempStr + '\n' + str(type(codeline)) + str(codeline.func)
+                if hasattr(codeline, 'list'):
+                    #print("body.codeline.func: " + str(codeline.func))
+                    tempStr = tempStr + '\n' + str(type(codeline)) + str(codeline.list)
+                if hasattr(codeline, 'target'):
+                    #print("body.codeline.func: " + str(codeline.func))
+                    tempStr = tempStr + '\n' + str(type(codeline)) + str(codeline.target)
+                    #tempTarget = node(codeline.target)
+                    #if hasattr(tempTarget, 'id')
+                    #    tempStr = tempStr + str((codeline.target).id)
+                if hasattr(codeline, 's'):
+                    #print("body.codeline.s: " + str(codeline.s))
+                    tempStr = tempStr + '\n' + str(type(codeline)) + str(codeline.s)
+                if hasattr(codeline, 'values'):
+                    #print("body.codeline.values: " + str(codeline.values))
+                    tempStr = tempStr + '\n' + str(type(codeline)) + str(codeline.values) 
+                    #for item in codeline.values:
+                    #    print('hi' + str(item.op))
+                    #if isinstance(node, ast.Print):
+                    #    print(type(codeline))
+            tempStr = tempStr + '\n' + "endOfDeadCode block for if() statement starting at line " + str(node.lineno) + ".\n"
             self.errors.append((node, tempStr))
 
     def visit_If(self, node):
@@ -228,6 +267,44 @@ class TreeVisitor(ast.NodeVisitor):
 
     def visit_ExceptHandler(self, node):
         self._visit_block(node.body, block_required=True)
+        self.generic_visit(node)
+
+    def visit_Expr(self,node):
+        foundSys = False
+        #print(foundSys)
+        if hasattr(node, 'value'):
+            if hasattr(node.value, 'func'):
+                if hasattr(node.value.func, 'value'):
+                    if hasattr(node.value.func.value, 'id'):
+                        tempExpression = node.value.func.value.id
+                        if tempExpression == "sys":
+                            foundSys = True
+
+        foundExit = False
+        if hasattr(node, 'value'):
+            if hasattr(node.value, 'func'):
+                if hasattr(node.value.func, 'attr'):
+                    tempAttribute = node.value.func.attr
+                    #print(tempAttribute)
+                    if tempAttribute == "exit":
+                            foundExit = True
+        #print(str(foundSys) + " . " + str(foundExit))
+        #print(foundSys & foundExit)
+
+        #bitwise 'AND' operation on the foundSys and foundExit booleans
+        #This means we only do stuff if the sys python module is invoked, and the specific method from the sys module is exit()
+        if (foundSys & foundExit):
+            tempStr = "A423 dead code after sys.exit() expression on line " + str(node.lineno) + ".\n"
+            self.errors.append((node, tempStr))
+
+
+
+        print(dir(node))
+        print(node.value)
+        nodeT = node.value.func
+        print(dir(nodeT))
+        print(nodeT.attr)
+        print(node.value.func.value.id)
         self.generic_visit(node)
 
     def _visit_stored_name(self, node, name):
@@ -352,7 +429,8 @@ class TreeVisitor(ast.NodeVisitor):
         substitute = DISCOURAGED_APIS.get(name)
         if substitute:
             self.errors.append((node, 'A301 use {}() instead of '
-                                      '{}()'.format(substitute, name)))
+                                      '{}()'.format(substitute, name)))  
+            
 
     def visit_Call(self, node):
         func = get_identifier(node.func)
@@ -443,7 +521,7 @@ def check_non_default_encoding(physical_line, line_number):
     if line_number <= 2 and re.search(r'^\s*#.*coding[:=]', physical_line):
         return (0, 'A303 non-default file encoding')
 
-
+"""
 def check_if0(physical_line, line_number):
     if 0 and re.search(r'if\(0\):', physical_line):
         return (0, 'A304 dead code after ' + physical_line)
@@ -459,6 +537,7 @@ def check_if_false(physical_line, line_number):
 def check_sys_exit(physical_line, line_number):
     if 1 and re.search(r'sys.exit\(\)', physical_line):
         return (0, 'A306 dead code after ' + physical_line)
+"""
 
 
 def check_quotes(logical_line, tokens, previous_logical, checker_state):
@@ -574,8 +653,7 @@ def check_insecure_cipher_mode(physical_line):
         return (0, 'A371 insecure cipher block mode ' + match.group(0))
 
 
-for checker in [check_ast, check_non_default_encoding, check_if0,
-                check_if_false, check_sys_exit, check_quotes,
+for checker in [check_ast, check_non_default_encoding, check_quotes,
                 check_redundant_parenthesis, check_insecure_hash,
                 check_insecure_cipher_mode]:
     checker.name = 'eyeo'
