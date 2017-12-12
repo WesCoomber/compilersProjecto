@@ -62,8 +62,8 @@ ffalse = False
 if False:
     print('Second Constant Unreachable Print statement!' + str(z))
 
-#if ffalse:
-#    print('Second Constant Unreachable Print statement!' + str(z))
+if ffalse:
+    print('Second Constant Unreachable Print statement!' + str(z))
 
 
 if z:

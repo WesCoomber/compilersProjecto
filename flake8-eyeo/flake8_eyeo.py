@@ -237,7 +237,7 @@ class TreeVisitor(ast.NodeVisitor):
                         warning = True
                         indirZero = True
                         tempVName = node.test.id
-                    if node.test.id == "False":
+                    if (self.vars_dict[node.test.id]) == "False":
                         warning = True
                         ffalse = True
                     if self.vars_dict[node.test.id] in self.vars_dict:
@@ -248,7 +248,7 @@ class TreeVisitor(ast.NodeVisitor):
                             warning = True
                             indirZero = True
                             tempVName = node.test.id
-                        if node.test.id == "False":
+                        if self.vars_dict[tempVal] == "False":
                             warning = True
                             ffalse = True
 
