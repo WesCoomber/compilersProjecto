@@ -127,19 +127,16 @@ class TreeVisitor(ast.NodeVisitor):
     def __init__(self):
         self.errors = []
         self.scope_stack = []
-        self.loops = 0
-        self.hoistable_dict = {}
-        self.stored_dict = {}
         self.vars_dict = {}
+        self.loop_level = 0
+        self.loop_stores = {}
+
         
     def _check_hoistable_line(self, node):
-        for key in self.hoistable_dict:
-            if (self.hoistable_dict[key] == self.loops and ((key not in self.stored_dict) or (self.loops > self.stored_dict[key]))):
-                self.errors.append((node, "A200 assignment of constant value to variable can be hoisted from loop"))
+        for key in self.loop_stores:
+            self.errors.append((node, "A200 assignment of constant value to variable can be hoisted from loop at line {}".format(self.loop_stores[key][1])))
 
-        self.hoistable_dict = {}
-        self.stored_dict = {}
-
+        self.loop_stores = {}
         return
 
     def _visit_block(self, nodes, block_required=False,
@@ -431,28 +428,24 @@ class TreeVisitor(ast.NodeVisitor):
         self.generic_visit(node)
 
     def visit_For(self, node):
-        self.loops = self.loops + 1
+        self.loop_level = self.loop_level + 1
         self._visit_iter(node.iter)
         self._visit_block(node.body, block_required=True)
         self._visit_block(node.orelse)
         self.generic_visit(node)
-        self._check_hoistable_line(node)
-        self.loops = self.loops - 1
-        if (self.loops == 0):
-            self.stored_dict = {}
-            self.hoistable_dict = {}
+        self.loop_level = self.loop_level - 1
+        if (self.loop_level == 0):
+            self._check_hoistable_line(node)
             
 
     def visit_While(self, node):
-        self.loops = self.loops + 1
+        self.loop_level = self.loop_level + 1
         self._visit_block(node.body, block_required=True)
         self._visit_block(node.orelse)
         self.generic_visit(node)
-        self._check_hoistable_line(node)
-        self.loops = self.loops - 1
-        if (self.loops == 0):
-            self.stored_dict = {}
-            self.hoistable_dict = {}
+        self.loop_level = self.loop_level - 1
+        if (self.loop_level == 0):
+            self._check_hoistable_line(node)
 
     def visit_BinOp(self, node):
         if isinstance(node.op, ast.Mod) and isinstance(node.left, ast.Str):
@@ -542,16 +535,15 @@ class TreeVisitor(ast.NodeVisitor):
     visit_ImportFrom = visit_Import
 
     def visit_Assign(self, node):
-        if (len(node.targets) == 1 and isinstance(node.targets[0], ast.Name)
-                and (isinstance(node.value, ast.Str) or isinstance(node.value, ast.Num)) and self.loops > 0):
-            if(hasattr(node.targets[0], 'id')):
-                self.hoistable_dict[node.targets[0].id] = self.loops
-        elif (self.loops > 0 and len(node.targets) == 1 and isinstance(node.targets[0], ast.Name)):
-            if(hasattr(node.targets[0], 'id')):
-                self.stored_dict[node.targets[0].id] = self.loops
-
-#        print(len(node.targets))
-#        print((node.targets[0]))
+        if (self.loop_level > 0 and len(node.targets) == 1 and isinstance(node.targets[0], ast.Name)):
+            if (isinstance(node.value, ast.Str) or isinstance(node.value, ast.Num)):
+                if (node.targets[0].id not in self.loop_stores or (self.loop_stores[node.targets[0].id][0] < self.loop_level)):
+                    self.loop_stores[node.targets[0].id] = [self.loop_level, node.lineno]
+                else:
+                    del self.loop_stores[node.targets[0].id]
+            else:
+                if (node.targets[0].id in self.loop_stores):
+                    del self.loop_stores[node.targets[0].id]
 
         #visit every assignment node in our AST to get a dictionary of all the variables in our program and all the value stored in each variable
         #dictionary that records this uses the var name "eg. X" as a key, and the value returned is the current value stored in that variable "X"
