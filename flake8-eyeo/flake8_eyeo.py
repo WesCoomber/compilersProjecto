@@ -72,6 +72,10 @@ class FuncLister(ast.NodeVisitor):
         print("FunctionDef: " + node.name)
         self.generic_visit(node)
     def visit_If(self, node):
+        tempNum = 5
+        tempNum = tempNum + 1
+        empty = 0
+        tempBool = False
         print("If.test: " + str(node.test))
         #checks if the If node's test node has the attribute n (num value) and prints it if it exists
         if hasattr(node.test, 'n'):
@@ -79,8 +83,11 @@ class FuncLister(ast.NodeVisitor):
         if hasattr(node.test, 'id'):
             print("If.test.id: " + str(node.test.id))
         bodylist = node.body
+        tempNum = empty
         for codeline in bodylist:
-            print(type(codeline))
+            if (False):
+                print(type(codeline))
+            #print(type(codeline))
             if hasattr(codeline, 'n'):
                 print("body.codeline.n: " + str(codeline.n))
             if hasattr(codeline, 'id'):
@@ -93,12 +100,19 @@ class FuncLister(ast.NodeVisitor):
                 print("body.codeline.func: " + str(codeline.func))
             if hasattr(codeline, 's'):
                 print("body.codeline.s: " + str(codeline.s))
+            if (tempNum):
+                print(type(codeline))
             if hasattr(codeline, 'values'):
                 print("body.codeline.values: " + str(codeline.values))
                 
                 if isinstance(node, ast.Print):
                     print(type(codeline))
             print(codeline)
+        if (tempNum):
+            print(type(codeline)) 
+        if (tempBool):
+            print(type(codeline))
+            print(tempBool)
         print("If.body: " + str(node.body))
         print("If.orelse: " + str(node.orelse))
         
