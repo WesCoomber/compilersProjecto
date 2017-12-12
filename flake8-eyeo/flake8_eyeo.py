@@ -72,6 +72,10 @@ class FuncLister(ast.NodeVisitor):
         print("FunctionDef: " + node.name)
         self.generic_visit(node)
     def visit_If(self, node):
+        tempNum = 5
+        tempNum = tempNum + 1
+        empty = 0
+        tempBool = False
         print("If.test: " + str(node.test))
         #checks if the If node's test node has the attribute n (num value) and prints it if it exists
         if hasattr(node.test, 'n'):
@@ -79,10 +83,14 @@ class FuncLister(ast.NodeVisitor):
         if hasattr(node.test, 'id'):
             print("If.test.id: " + str(node.test.id))
         bodylist = node.body
+        tempNum = empty
         for codeline in bodylist:
-            print(type(codeline))
+            if (tempNum):
+                print(type(codeline))
             if hasattr(codeline, 'n'):
                 print("body.codeline.n: " + str(codeline.n))
+                if (0):
+                    print("DEBUG INFO, reached iterate through codeline in bodylist.\n")
             if hasattr(codeline, 'id'):
                 print("body.codeline.id: " + str(codeline.id))
             if hasattr(codeline, 'name'):
@@ -99,6 +107,11 @@ class FuncLister(ast.NodeVisitor):
                 if isinstance(node, ast.Print):
                     print(type(codeline))
             print(codeline)
+        if (tempNum):
+            print(type(codeline)) 
+        if (tempBool):
+            print(type(codeline))
+            print(tempBool)
         print("If.body: " + str(node.body))
         print("If.orelse: " + str(node.orelse))
         
@@ -224,6 +237,9 @@ class TreeVisitor(ast.NodeVisitor):
                         warning = True
                         indirZero = True
                         tempVName = node.test.id
+                    if node.test.id == "False":
+                        warning = True
+                        ffalse = True
                     if self.vars_dict[node.test.id] in self.vars_dict:
                         tempVal = self.vars_dict[node.test.id]
                         #print(tempVal)
@@ -232,6 +248,9 @@ class TreeVisitor(ast.NodeVisitor):
                             warning = True
                             indirZero = True
                             tempVName = node.test.id
+                        if node.test.id == "False":
+                            warning = True
+                            ffalse = True
 
             #one of our checks has flagged a node with a dead code warning
             if warning == True:
@@ -551,6 +570,13 @@ class TreeVisitor(ast.NodeVisitor):
                     if(hasattr(node.targets[0], 'id')):
                         self.vars_dict[node.targets[0].id] = node.value.id
                         #print(self.vars_dict[node.targets[0].id])
+                #print('node.value' +  str(node.value))
+                if(hasattr(node.value, 'value')):
+                    print(self.vars_dict[node.targets[0].id])
+                    if(hasattr(node.targets[0], 'id')):
+                        self.vars_dict[node.targets[0].id] = node.value.value
+                        print(self.vars_dict[node.targets[0].id])
+
 
         if isinstance(node.value, ast.BinOp) and len(node.targets) == 1:
             target = node.targets[0]

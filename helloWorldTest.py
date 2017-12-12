@@ -57,10 +57,13 @@ if 0:
     for i in range(0, 70):
         k += 1
     k = 5
-
+ffalse = False
 
 if False:
     print('Second Constant Unreachable Print statement!' + str(z))
+
+#if ffalse:
+#    print('Second Constant Unreachable Print statement!' + str(z))
 
 
 if z:
