@@ -233,22 +233,22 @@ class TreeVisitor(ast.NodeVisitor):
                 if node.test.id in self.vars_dict:
                     #print(node.test.id)
                     #print(self.vars_dict[node.test.id])
-                    if (self.vars_dict[node.test.id]) == 0:
+                    if self.vars_dict.get(node.test.id, 'def') == 0:
                         warning = True
                         indirZero = True
                         tempVName = node.test.id
-                    if (self.vars_dict[node.test.id]) == "False":
+                    if self.vars_dict.get(node.test.id, 'def')  == "False":
                         warning = True
                         ffalse = True
                     if self.vars_dict[node.test.id] in self.vars_dict:
                         tempVal = self.vars_dict[node.test.id]
                         #print(tempVal)
-                        if self.vars_dict[tempVal] == 0:
+                        if self.vars_dict.get(tempVal, 'def')  == 0:
                         #if (self.vars_dict[(self.vars_dict[node.test.id])] == 0:
                             warning = True
                             indirZero = True
                             tempVName = node.test.id
-                        if self.vars_dict[tempVal] == "False":
+                        if self.vars_dict.get(tempVal, 'def') == "False":
                             warning = True
                             ffalse = True
 
@@ -586,9 +586,9 @@ class TreeVisitor(ast.NodeVisitor):
             if left_is_target:
                 self.errors.append((node, 'A106 use augment assignment, '
                                           'e.g. x += y instead x = x + y'))
-#        for key in self.vars_dict:
-#            print key, self.vars_dict[key]
-#        print "\n"
+        for key in self.vars_dict:
+            print key, self.vars_dict[key]
+        print "\n"
         self.generic_visit(node)
 
     def _visit_hash_keys(self, nodes, what):
