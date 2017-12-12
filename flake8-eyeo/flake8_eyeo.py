@@ -530,9 +530,11 @@ class TreeVisitor(ast.NodeVisitor):
     def visit_Assign(self, node):
         if (len(node.targets) == 1 and isinstance(node.targets[0], ast.Name)
                 and (isinstance(node.value, ast.Str) or isinstance(node.value, ast.Num)) and self.loops > 0):
-            self.hoistable_dict[node.targets[0].id] = self.loops
+            if(hasattr(node.targets[0], 'id')):
+                self.hoistable_dict[node.targets[0].id] = self.loops
         elif (self.loops > 0 and len(node.targets) == 1 and isinstance(node.targets[0], ast.Name)):
-            self.stored_dict[node.targets[0].id] = self.loops
+            if(hasattr(node.targets[0], 'id')):
+                self.stored_dict[node.targets[0].id] = self.loops
 
 #        print(len(node.targets))
 #        print((node.targets[0]))
@@ -542,11 +544,13 @@ class TreeVisitor(ast.NodeVisitor):
         if (hasattr(node, 'targets') and len(node.targets) == 1):
             if(hasattr(node, 'value')):
                 if(hasattr(node.value, 'n')):
-                    self.vars_dict[node.targets[0].id] = node.value.n
-                    #print(self.vars_dict[node.targets[0].id])
+                    if(hasattr(node.targets[0], 'id')):
+                        self.vars_dict[node.targets[0].id] = node.value.n
+                        #print(self.vars_dict[node.targets[0].id])
                 if(hasattr(node.value, 'id')):
-                    self.vars_dict[node.targets[0].id] = node.value.id
-                    #print(self.vars_dict[node.targets[0].id])
+                    if(hasattr(node.targets[0], 'id')):
+                        self.vars_dict[node.targets[0].id] = node.value.id
+                        #print(self.vars_dict[node.targets[0].id])
 
         if isinstance(node.value, ast.BinOp) and len(node.targets) == 1:
             target = node.targets[0]
