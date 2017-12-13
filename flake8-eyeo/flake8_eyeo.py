@@ -563,7 +563,7 @@ class TreeVisitor(ast.NodeVisitor):
         if isinstance(node, ast.Str) or isinstance(node, ast.Num):
             return True
         # check both sides of binop
-        if isinstance(node, ast.BinOp):
+        if isinstance(node, ast.BinOp) and hasattr(node, 'left') and hasattr(node, 'right'):
             # check if both sides are string or num
             left = isinstance(node.left, ast.Str) or isinstance(node.left, ast.Num)
             right = isinstance(node.right, ast.Str) or isinstance(node.right, ast.Num)
