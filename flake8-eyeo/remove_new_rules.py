@@ -19,7 +19,7 @@ total_lines = 0
 
 for line in infile:
     total_lines += 1
-    match = re.search(r'(A371|A370|A305|A306|A304|A420)', line)
+    match = re.search(r'(A371|A370|A200|A421|A422|A423|A424)', line)
     if match:
         new_bugs += 1
     else:
