@@ -580,17 +580,17 @@ class TreeVisitor(ast.NodeVisitor):
 
     def visit_Assign(self, node):
         # analyze all assignments to variables made within loops
-        if self.loop_level > 0 and isinstance(node.targets[0], ast.Name):
+        if self.loop_level > 0 and hasattr(node, 'targets') and isinstance(node.targets[0], ast.Name):
             # loop through multiple targets if chained assignment
             for i in range(0, len(node.targets)):
                 # assigning to a constant value
-                if self._check_operands_constant(node.value):
+                if hasattr(node, 'value') and self._check_operands_constant(node.value):
                     # if (isinstance(node.targets[i], ast.Name) and
                     #   (isinstance(node.value, ast.Str) or
                     #    isinstance(node.value, ast.Num))):
                     # add to dict if assigning to first instance or deepest
                     #   instance of variable
-                    if (node.targets[i].id not in self.loop_stores or (self.loop_stores[node.targets[i].id][0] < self.loop_level)):
+                    if hasattr(node.targets[i], 'id') and (node.targets[i].id not in self.loop_stores or (self.loop_stores[node.targets[i].id][0] < self.loop_level)):
                         self.loop_stores[node.targets[i].id] = [self.loop_level, node.lineno]
                     # remove dict entry if find a shallow instance
                     else:
@@ -598,7 +598,7 @@ class TreeVisitor(ast.NodeVisitor):
                 else:
                     # if assigning non-constant to variable in dict, remove
                     #   dict entry
-                    if node.targets[i].id in self.loop_stores:
+                    if hasattr(node.targets[i], 'id') and node.targets[i].id in self.loop_stores:
                         del self.loop_stores[node.targets[i].id]
 
         # visit every assignment node in our AST to get a dictionary of all the
