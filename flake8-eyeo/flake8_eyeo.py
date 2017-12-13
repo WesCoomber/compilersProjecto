@@ -12,35 +12,27 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Adblock Plus.  If not, see <http://www.gnu.org/licenses/>.
-
 import ast
 import re
 import tokenize
 import sys
 import collections
-
 try:
     import builtins
 except ImportError:
     import __builtin__ as builtins
-
 import pkg_resources
-
 try:
     ascii
 except NameError:
     ascii = repr
-
 __version__ = pkg_resources.get_distribution('flake8-eyeo').version
-
 DISCOURAGED_APIS = {
     're.match': 're.search',
     'codecs.open': 'io.open',
 }
-
 ESSENTIAL_BUILTINS = set(dir(builtins)) - {'apply', 'buffer', 'coerce',
                                            'intern', 'file'}
-
 LEAVE_BLOCK = (ast.Return, ast.Raise, ast.Continue, ast.Break)
 VOLATILE = object()
 
@@ -58,68 +50,72 @@ def is_const(node):
 
 
 def get_identifier(node):
+    # print '61: get_identifier'
     if isinstance(node, ast.Name):
         return node.id
     if isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name):
         return '{}.{}'.format(node.value.id, node.attr)
+    if isinstance(node, ast.Attribute):
+        print node
 
 
 def get_statement(node):
     return type(node).__name__.lower()
 
+
 class FuncLister(ast.NodeVisitor):
     def visit_FunctionDef(self, node):
-        print("FunctionDef: " + node.name)
+        print('FunctionDef: ' + node.name)
         self.generic_visit(node)
+
     def visit_If(self, node):
         tempNum = 5
         tempNum = tempNum + 1
         empty = 0
         tempBool = False
-        print("If.test: " + str(node.test))
-        #checks if the If node's test node has the attribute n (num value) and prints it if it exists
+        print('If.test: ' + str(node.test))
+        #checks if the If node's test node has the attribute n (num value) and
+        #   prints it if it exists
         if hasattr(node.test, 'n'):
-            print("If.test.n: " + str(node.test.n))
+            print('If.test.n: ' + str(node.test.n))
         if hasattr(node.test, 'id'):
-            print("If.test.id: " + str(node.test.id))
+            print('If.test.id: ' + str(node.test.id))
         bodylist = node.body
         tempNum = empty
         for codeline in bodylist:
             if (False):
                 print(type(codeline))
-            #print(type(codeline))
+            # print(type(codeline))
             if hasattr(codeline, 'n'):
-                print("body.codeline.n: " + str(codeline.n))
+                print('body.codeline.n: ' + str(codeline.n))
             if hasattr(codeline, 'id'):
-                print("body.codeline.id: " + str(codeline.id))
+                print('body.codeline.id: ' + str(codeline.id))
             if hasattr(codeline, 'name'):
-                print("body.codeline.name: " + str(codeline.name))
+                print('body.codeline.name: ' + str(codeline.name))
             if hasattr(codeline, 'value'):
-                print("body.codeline.value: " + str(codeline.value))
+                print('body.codeline.value: ' + str(codeline.value))
             if hasattr(codeline, 'func'):
-                print("body.codeline.func: " + str(codeline.func))
+                print('body.codeline.func: ' + str(codeline.func))
             if hasattr(codeline, 's'):
-                print("body.codeline.s: " + str(codeline.s))
+                print('body.codeline.s: ' + str(codeline.s))
             if (tempNum):
                 print(type(codeline))
             if hasattr(codeline, 'values'):
-                print("body.codeline.values: " + str(codeline.values))
-                
+                print('body.codeline.values: ' + str(codeline.values))
                 if isinstance(node, ast.Print):
                     print(type(codeline))
             print(codeline)
         if (tempNum):
-            print(type(codeline)) 
+            print(type(codeline))
         if (tempBool):
             print(type(codeline))
             print(tempBool)
-        print("If.body: " + str(node.body))
-        print("If.orelse: " + str(node.orelse))
-        
-        #fields = ast.dump(node)
-        #print("If.ast.dump: " + str(fields))
+        print('If.body: ' + str(node.body))
+        print('If.orelse: ' + str(node.orelse))
+        # fields = ast.dump(node)
+        # print('If.ast.dump: ' + str(fields))
         self.generic_visit(node)
-        
+
 
 class TreeVisitor(ast.NodeVisitor):
     Scope = collections.namedtuple('Scope', ['node', 'names', 'globals'])
@@ -131,11 +127,9 @@ class TreeVisitor(ast.NodeVisitor):
         self.loop_level = 0
         self.loop_stores = {}
 
-        
     def _check_hoistable_line(self, node):
         for key in self.loop_stores:
-            self.errors.append((node, "A200 assignment of constant value to variable can be hoisted from loop at line {}".format(self.loop_stores[key][1])))
-
+            self.errors.append((node, 'A200 assignment of constant value to variable can be hoisted from loop at line {}'.format(self.loop_stores[key][1])))
         self.loop_stores = {}
         return
 
@@ -146,27 +140,22 @@ class TreeVisitor(ast.NodeVisitor):
         has_non_pass = False
         leave_node = None
         dead_code = False
-
         for i, node in enumerate(nodes):
             if isinstance(node, ast.Pass):
                 pass_node = node
             else:
                 has_non_pass = True
-
             if leave_node and not dead_code:
                 dead_code = True
                 statement = get_statement(leave_node)
                 self.errors.append((node, 'A202 dead code after '
                                           '{}'.format(statement)))
-
             if isinstance(node, LEAVE_BLOCK):
                 leave_node = node
-
             if can_have_unused_expr or not isinstance(node, ast.Expr):
                 continue
             if docstring and i == 0 and isinstance(node.value, ast.Str):
                 continue
-
             non_literal_expr_nodes = (ast.Call, ast.Yield)
             try:
                 non_literal_expr_nodes += (ast.YieldFrom,)
@@ -174,21 +163,17 @@ class TreeVisitor(ast.NodeVisitor):
                 pass
             if isinstance(node.value, non_literal_expr_nodes):
                 continue
-
             self.errors.append((node, 'A203 unused expression'))
-
         if pass_node:
             if not nodes_required or len(nodes) > 1:
                 self.errors.append((pass_node, 'A204 redundant '
                                                'pass statement'))
-
             if not block_required and not has_non_pass:
                 self.errors.append((pass_node, 'A205 empty block'))
 
     def _check_redundant_else(self, node, handlers, clause):
         if not node.orelse:
             return
-
         for handler in handlers:
             for child in handler.body:
                 if isinstance(child, LEAVE_BLOCK):
@@ -196,106 +181,116 @@ class TreeVisitor(ast.NodeVisitor):
                     break
             else:
                 return
-
         statement = get_statement(leave_node)
         self.errors.append((node.orelse[0],
                             'A206 Extraneous else statement after {} '
                             'in {}-clause'.format(statement, clause)))
+    # this method is called whenever we visit an 'If' statement while
+    #       traversing the Abstract Syntax Tree in the TreeVisitor class
+    # this method checks whether the 'If' statement contains unconditionally
+    #       unreachable code in its body
 
-    #this method is called whenever we visit an 'If' statement while traversing the Abstract Syntax Tree in the TreeVisitor class
-    #this method checks whether the 'If' statement contains unconditionally unreachable code in its body
     def _check_if(self, node):
         warning = False
         zero = False
         ffalse = False
         indirZero = False
-
-        tempVName = "w"
-
-        #check if the ast.node has an attribute called 'test'
+        tempVName = 'w'
+        # check if the ast.node has an attribute called 'test'
         if hasattr(node, 'test'):
-            #check if the ast.node.test has a constant integer/float/complex value  
+            # check if the ast.node.test has a constant integer/float/complex
+            #   value
             if hasattr(node.test, 'n'):
-                #print("If.test.n: " + str(node.test.n))
-                #if the constant 'n' num value is '0' then we should warn the programmer about potentially dead code
+                # print('If.test.n: ' + str(node.test.n))
+                # if the constant 'n' num value is '0' then we should warn the
+                # programmer about potentially dead code
                 if node.test.n == 0:
                     warning = True
                     zero = True
-            #check if the ast.node.test has a string called 'id', containing the variable name
+            # check if the ast.node.test has a string called 'id', containing
+            # the variable name
             if hasattr(node.test, 'id'):
-                #print("If.test.id: " + str(node.test.id))
-                #if the string 'id' value is named "False" then we should warn the programmer about potentially dead code
-                if node.test.id == "False":
+                # print('If.test.id: ' + str(node.test.id))
+                # if the string 'id' value is named 'False' then we should warn
+                # the programmer about potentially dead code
+                if node.test.id == 'False':
                     warning = True
                     ffalse = True
                 if node.test.id in self.vars_dict:
-                    #print(node.test.id)
-                    #print(self.vars_dict[node.test.id])
+                    # print(node.test.id)
+                    # print(self.vars_dict[node.test.id])
                     if (self.vars_dict[node.test.id]) == 0:
                         warning = True
                         indirZero = True
                         tempVName = node.test.id
                     if self.vars_dict[node.test.id] in self.vars_dict:
                         tempVal = self.vars_dict[node.test.id]
-                        #print(tempVal)
+                        # print(tempVal)
                         if self.vars_dict[tempVal] == 0:
-                        #if (self.vars_dict[(self.vars_dict[node.test.id])] == 0:
                             warning = True
                             indirZero = True
                             tempVName = node.test.id
-
-            #one of our checks has flagged a node with a dead code warning
-            if warning == True:
-                statement = get_statement(node)
+            # one of our checks has flagged a node with a dead code warning
+            if warning is True:
+                # statement = get_statement(node)
                 tempStr = 'temp'
-                #self.errors.append((node, 'A420 dead code after ' '{}'.format(statement)) + 'statement')
-                #if the "If(0)" check raised a flag then prepare a string warning for the self.errors log
-                if zero == True:
-                    tempStr = "A421 dead code after if(0) statement."
-                #else the warning was raised and the only other way to raise the warning boolean is for there to be a "If(False)" warning, so we prepare the appropraite warning string
-                if ffalse == True:
-                    tempStr = "A422 dead code after if(False) statement."
-                #self.errors.append((node, 'A420 dead code after ' '{}'.format(statement)) + 'statement')
-                if indirZero == True:
-                    tempStr = "A423 dead code after if(" + str(tempVName) + ") statement, indirect if(0) detected."
-                
-                #this block of code adds the AST representation of the block of potentially dead code within the flagged "IF" statement's scope
-                tempStr = tempStr + '\n' + "startOfDeadCode block for if() statement starting at line " + str(node.lineno) + "."
+                # self.errors.append((node,
+                #   'A420 dead code after ' '{}'.format(statement)) +
+                #   'statement')
+                # if the 'If(0)' check raised a flag then prepare a string
+                # warning for the self.errors log
+                if zero is True:
+                    tempStr = 'A421 dead code after if(0) statement.'
+                # else the warning was raised and the only other way to raise
+                #   the warning boolean is for there to be a 'If(False)'
+                #   warning, so we prepare the appropraite warning string
+                if ffalse is True:
+                    tempStr = 'A422 dead code after if(False) statement.'
+                # self.errors.append((node,
+                #   'A420 dead code after ' '{}'.format(statement)) +
+                #   'statement')
+                if indirZero is True:
+                    tempStr = 'A423 dead code after if(' + str(tempVName) + ') statement, indirect if(0) detected.'
+                # this block of code adds the AST representation of the block
+                #   of potentially dead code within the flagged 'IF'
+                #   statement's scope
+                tempStr = tempStr + '\n' + 'startOfDeadCode block for if() statement starting at line ' + str(node.lineno) + '.'
                 bodylist = node.body
                 for codeline in bodylist:
-                    #print(type(codeline))
+                    # print(type(codeline))
                     if hasattr(codeline, 'n'):
-                        #print("body.codeline.n: " + str(codeline.n))
-                        tempStr = tempStr + '\n    ' + str(type(codeline)) + str(codeline.n)
+                        # print('body.codeline.n: ' + str(codeline.n))
+                        tempStr = (tempStr + '\n    ' + str(type(codeline)) +
+                                   str(codeline.n))
                     if hasattr(codeline, 'id'):
-                        #print("body.codeline.id: " + str(codeline.id))
+                        # print('body.codeline.id: ' + str(codeline.id))
                         tempStr = tempStr + '\n    ' + str(type(codeline)) + str(codeline.id)
                     if hasattr(codeline, 'name'):
-                        #print("body.codeline.name: " + str(codeline.name))
+                        # print('body.codeline.name: ' + str(codeline.name))
                         tempStr = tempStr + '\n    ' + str(type(codeline)) + str(codeline.name)
                     if hasattr(codeline, 'value'):
-                        #print("body.codeline.value: " + str(codeline.value))
+                        # print('body.codeline.value: ' + str(codeline.value))
                         tempStr = tempStr + '\n    ' + str(type(codeline)) + str(codeline.value)
                     if hasattr(codeline, 'func'):
-                        #print("body.codeline.func: " + str(codeline.func))
+                        # print('body.codeline.func: ' + str(codeline.func))
                         tempStr = tempStr + '\n    ' + str(type(codeline)) + str(codeline.func)
                     if hasattr(codeline, 'list'):
-                        #print("body.codeline.func: " + str(codeline.func))
+                        # print('body.codeline.func: ' + str(codeline.func))
                         tempStr = tempStr + '\n    ' + str(type(codeline)) + str(codeline.list)
                     if hasattr(codeline, 'target'):
-                        #print("body.codeline.func: " + str(codeline.func))
+                        # print('body.codeline.func: ' + str(codeline.func))
                         tempStr = tempStr + '\n    ' + str(type(codeline)) + str(codeline.target)
-                        #tempTarget = node(codeline.target)
-                        #if hasattr(tempTarget, 'id')
+                        # tempTarget = node(codeline.target)
+                        # if hasattr(tempTarget, 'id')
                         #    tempStr = tempStr + str((codeline.target).id)
                     if hasattr(codeline, 's'):
-                        #print("body.codeline.s: " + str(codeline.s))
+                        # print('body.codeline.s: ' + str(codeline.s))
                         tempStr = tempStr + '\n    ' + str(type(codeline)) + str(codeline.s)
                     if hasattr(codeline, 'values'):
-                        #print("body.codeline.values: " + str(codeline.values))
-                        tempStr = tempStr + '\n    ' + str(type(codeline)) + str(codeline.values) 
-                tempStr = tempStr + '\n' + "endOfDeadCode block for if() statement starting at line " + str(node.lineno) + ".\n"
-                #Finally append all of our warning strings and the dead-code block to our self.errors log
+                        # print('body.codeline.values: ' + str(codeline.values))
+                        tempStr = tempStr + '\n    ' + str(type(codeline)) + str(codeline.values)
+                tempStr = tempStr + '\n' + 'endOfDeadCode block for if() statement starting at line ' + str(node.lineno) + '.\n'
+                # Finally append all of our warning strings and the dead-code block to our self.errors log
                 self.errors.append((node, tempStr))
 
     def visit_If(self, node):
@@ -327,23 +322,26 @@ class TreeVisitor(ast.NodeVisitor):
         self._visit_block(node.body, block_required=True)
         self.generic_visit(node)
 
-    #This function visits all the expression nodes in the target file's python Abstract Syntax Tree
-    def visit_Expr(self,node):
+    def visit_Expr(self, node):
+        # This function visits all the expression nodes in the target file's
+        #   python Abstract Syntax Tree
         foundSys = False
         foundHashlib = False
-        #print(foundSys)
-        #first we iterate through the AST to find whether the sys module is used anywhere
+        # print(foundSys)
+        # first we iterate through the AST to find whether the sys module is
+        #   used anywhere
         if hasattr(node, 'value'):
             if hasattr(node.value, 'func'):
                 if hasattr(node.value.func, 'value'):
                     if hasattr(node.value.func.value, 'id'):
                         tempExpression = node.value.func.value.id
-                        if tempExpression == "sys":
+                        if tempExpression == 'sys':
                             foundSys = True
                         elif tempExpression is 'hashlib':
                             foundHashlib = True
-
-        #If the first check is true then we check each usage of the python sys module to see if the program is utilizing the sys.exit() functionality of the sys module
+        # If the first check is true then we check each usage of the python sys
+        #   module to see if the program is utilizing the sys.exit()
+        #   functionality of the sys module
         foundExit = False
         foundBadHash = False
         insecure = ''
@@ -352,37 +350,46 @@ class TreeVisitor(ast.NodeVisitor):
                 if hasattr(node.value.func, 'attr'):
                     tempAttribute = node.value.func.attr
                     # print(tempAttribute)
-                    if tempAttribute == "exit":
+                    if tempAttribute == 'exit':
                             foundExit = True
                     if tempAttribute in {'md2', 'md4', 'md5', 'sha'}:
                         insecure = str(tempAttribute)
                         foundBadHash = True
-
-        #bitwise 'AND' operation on the foundSys and foundExit booleans
-        #This means we only do stuff if the sys python module is invoked, and the specific method from the sys module is exit()
+                if hasattr(node.value.func, 'value'):
+                    # print '365: ',
+                    # print node.value.func.value
+                    # print dir(node.value.func.value)
+                    if hasattr(node.value.func.value, 'func'):
+                        if hasattr(node.value.func.value.func.value, 'id'):
+                            # print '369: ',
+                            # print node.value.func.value.func
+                            if node.value.func.value.func.value.id is 'hashlib':
+                                foundHashlib = True
+                                # print 'it's a hashlib'
+                                # print dir(node.value.func.value.func)
+                                # if
+                                if hasattr(node.value.func.value.func, 'attr'):
+                                    tmpAttrib = node.value.func.value.func.attr
+                                    if tmpAttrib in {'md2', 'md4', 'md5',
+                                                     'sha'}:
+                                        # print 'found bad thing! ' + tmpAttrib
+                                        foundBadHash = True
+                                        insecure = tmpAttrib
+        # bitwise 'AND' operation on the foundSys and foundExit booleans
+        # This means we only do stuff if the sys python module is invoked, and
+        #   the specific method from the sys module is exit()
         if (foundSys & foundExit):
-            tempStr = "A424 dead code after sys.exit() expression on line " + str(node.lineno) + ".\n"
+            tempStr = ('A424 dead code after sys.exit() expression on line ' +
+                       str(node.lineno) + '.\n')
             self.errors.append((node, tempStr))
         elif foundHashlib and foundBadHash:
             # print 'bad bad ' + insecure
-            self.errors.append((node, 'A370 insecure hash function ' + insecure))
-
-
-
-
-
-
-
-
-
-
-
-
+            self.errors.append((node, 'A370 insecure hash function ' +
+                                insecure))
 
     def _visit_stored_name(self, node, name):
         scope = self.scope_stack[-1]
         scope.names.add(name)
-
         if name in ESSENTIAL_BUILTINS and isinstance(scope.node,
                                                      ast.FunctionDef):
             self.errors.append((node, 'A302 redefined built-in ' + name))
@@ -409,14 +416,11 @@ class TreeVisitor(ast.NodeVisitor):
     def visit_FunctionDef(self, node):
         self._visit_stored_name(node, node.name)
         self._visit_block(node.body, block_required=True, docstring=True)
-
-        #test code that prints out the function names in the flaked code
-        #print(node.name)
-        #self.generic_visit(node)
-
+        # test code that prints out the function names in the flaked code
+        # print(node.name)
+        # self.generic_visit(node)
         scope = self._visit_with_scope(node)
         global_names = set()
-
         for declaration in scope.globals:
             for name in declaration.names:
                 if name not in scope.names or name in global_names:
@@ -426,18 +430,15 @@ class TreeVisitor(ast.NodeVisitor):
                                         '{}'.format(statement, name)))
                 else:
                     global_names.add(name)
-
     visit_ClassDef = visit_FunctionDef
 
     def visit_Global(self, node):
         scope = self.scope_stack[-1]
         scope.globals.append(node)
-
         if isinstance(scope.node, ast.Module):
             statement = get_statement(node)
             self.errors.append((node, 'A201 {} declaration on '
                                       'top-level'.format(statement)))
-
     visit_Nonlocal = visit_Global
 
     def _visit_iter(self, node):
@@ -456,9 +457,8 @@ class TreeVisitor(ast.NodeVisitor):
         self._visit_block(node.orelse)
         self.generic_visit(node)
         self.loop_level = self.loop_level - 1
-        if (self.loop_level == 0):
+        if self.loop_level == 0:
             self._check_hoistable_line(node)
-            
 
     def visit_While(self, node):
         self.loop_level = self.loop_level + 1
@@ -466,14 +466,13 @@ class TreeVisitor(ast.NodeVisitor):
         self._visit_block(node.orelse)
         self.generic_visit(node)
         self.loop_level = self.loop_level - 1
-        if (self.loop_level == 0):
+        if self.loop_level == 0:
             self._check_hoistable_line(node)
 
     def visit_BinOp(self, node):
         if isinstance(node.op, ast.Mod) and isinstance(node.left, ast.Str):
             self.errors.append((node, 'A107 use format() instead of '
                                       '% operator for string formatting'))
-
         multi_addition = (isinstance(node.op, ast.Add) and
                           isinstance(node.left, ast.BinOp) and
                           isinstance(node.left.op, ast.Add))
@@ -483,41 +482,41 @@ class TreeVisitor(ast.NodeVisitor):
             self.errors.append((node, 'A108 use format() instead of '
                                       '+ operator when concatenating '
                                       'more than two strings'))
-
         self.generic_visit(node)
 
     def visit_Compare(self, node):
         left = node.left
         single = len(node.ops) == 1
-
         for op, right in zip(node.ops, node.comparators):
             membership = isinstance(op, (ast.In, ast.NotIn))
             symmetric = isinstance(op, (ast.Eq, ast.NotEq, ast.Is, ast.IsNot))
-
             if membership and isinstance(right, (ast.Tuple, ast.List)):
                 self.errors.append((right, 'A102 use sets for distinct '
                                            'unordered data'))
-
             consts_first = single and not membership or symmetric
             if consts_first and is_const(left) and not is_const(right):
                 self.errors.append((left, 'A103 yoda condition'))
-
             left = right
-
         self.generic_visit(node)
 
     def _check_deprecated(self, node, name):
         substitute = DISCOURAGED_APIS.get(name)
         if substitute:
             self.errors.append((node, 'A301 use {}() instead of '
-                                      '{}()'.format(substitute, name)))  
-            
+                                      '{}()'.format(substitute, name)))
 
     def visit_Call(self, node):
+        # print 'visit_Call'
         func = get_identifier(node.func)
         arg = next(iter(node.args), None)
         redundant_literal = False
-
+        # print arg
+        # print func
+        # print dir(arg)
+        if str(func) in {'hashlib.md2', 'hashlib.md4', 'hashlib.md5',
+                         'hashlib.sha'}:
+            # print 'found a bad ' + func
+            self.errors.append((node, 'A370 insecure hash function ' + func))
         if isinstance(arg, ast.Lambda):
             if len(node.args) == 2 and func in {'map', 'filter',
                                                 'imap', 'ifilter',
@@ -537,49 +536,50 @@ class TreeVisitor(ast.NodeVisitor):
                 redundant_literal = isinstance(arg.elt, (ast.Tuple, ast.List))
             else:
                 redundant_literal = func in {'list', 'set'}
-
         if redundant_literal:
             self.errors.append((node, 'A105 use a {0} literal or '
                                       'comprehension instead of calling '
                                       '{0}()'.format(func)))
-
         self._check_deprecated(node, func)
         self.generic_visit(node)
 
     def visit_Import(self, node):
         for alias in node.names:
             self._visit_stored_name(node, alias.asname or alias.name)
-
             if hasattr(node, 'module'):
                 self._check_deprecated(node, '{}.{}'.format(node.module,
                                                             alias.name))
-
     visit_ImportFrom = visit_Import
 
     def visit_Assign(self, node):
-        if (self.loop_level > 0 and len(node.targets) == 1 and isinstance(node.targets[0], ast.Name)):
-            if (isinstance(node.value, ast.Str) or isinstance(node.value, ast.Num)):
-                if (node.targets[0].id not in self.loop_stores or (self.loop_stores[node.targets[0].id][0] < self.loop_level)):
-                    self.loop_stores[node.targets[0].id] = [self.loop_level, node.lineno]
+        if (self.loop_level > 0 and len(node.targets) == 1 and
+                isinstance(node.targets[0], ast.Name)):
+            if (isinstance(node.value, ast.Str) or
+                    isinstance(node.value, ast.Num)):
+                if (node.targets[0].id not in self.loop_stores or
+                        (self.loop_stores[node.targets[0].id][0] <
+                            self.loop_level)):
+                    self.loop_stores[node.targets[0].id] = [self.loop_level,
+                                                            node.lineno]
                 else:
                     del self.loop_stores[node.targets[0].id]
             else:
                 if (node.targets[0].id in self.loop_stores):
                     del self.loop_stores[node.targets[0].id]
-
-        #visit every assignment node in our AST to get a dictionary of all the variables in our program and all the value stored in each variable
-        #dictionary that records this uses the var name "eg. X" as a key, and the value returned is the current value stored in that variable "X"
+        # visit every assignment node in our AST to get a dictionary of all the
+        #   variables in our program and all the value stored in each variable
+        # dictionary that records this uses the var name 'eg. X' as a key, and
+        #   the value returned is the current value stored in that variable 'X'
         if (hasattr(node, 'targets') and len(node.targets) == 1):
             if(hasattr(node, 'value')):
                 if(hasattr(node.value, 'n')):
                     if(hasattr(node.targets[0], 'id')):
                         self.vars_dict[node.targets[0].id] = node.value.n
-                        #print(self.vars_dict[node.targets[0].id])
+                        # print(self.vars_dict[node.targets[0].id])
                 if(hasattr(node.value, 'id')):
                     if(hasattr(node.targets[0], 'id')):
                         self.vars_dict[node.targets[0].id] = node.value.id
-                        #print(self.vars_dict[node.targets[0].id])
-
+                        # print(self.vars_dict[node.targets[0].id])
         if isinstance(node.value, ast.BinOp) and len(node.targets) == 1:
             target = node.targets[0]
             left_is_target = (isinstance(target, ast.Name) and
@@ -588,9 +588,9 @@ class TreeVisitor(ast.NodeVisitor):
             if left_is_target:
                 self.errors.append((node, 'A106 use augment assignment, '
                                           'e.g. x += y instead x = x + y'))
-#        for key in self.vars_dict:
-#            print key, self.vars_dict[key]
-#        print "\n"
+        # for key in self.vars_dict:
+        #     print key, self.vars_dict[key]
+        # print '\n'
         self.generic_visit(node)
 
     def _visit_hash_keys(self, nodes, what):
@@ -600,11 +600,9 @@ class TreeVisitor(ast.NodeVisitor):
             key = evaluate(node, namespace)
             if key is VOLATILE:
                 continue
-
             if key in keys:
                 self.errors.append((node, 'A207 duplicate ' + what))
                 continue
-
             keys.append(key)
 
     def visit_Dict(self, node):
@@ -617,9 +615,8 @@ class TreeVisitor(ast.NodeVisitor):
 def check_ast(tree):
     visitor = TreeVisitor()
     visitor.visit(tree)
-    #visitor2 = FuncLister()
-    #visitor2.visit(tree)
-
+    # visitor2 = FuncLister()
+    # visitor2.visit(tree)
     for node, error in visitor.errors:
         yield (node.lineno, node.col_offset, error, None)
 
@@ -683,33 +680,26 @@ def check_redundant_parenthesis(logical_line, tokens):
     start_line = tokens[0][2][0]
     level = 0
     statement = None
-
     for i, (kind, token, _, end, _) in enumerate(tokens):
         if kind == tokenize.INDENT or kind == tokenize.DEDENT:
             continue
-
         if statement is None:
             # logical line doesn't start with an if, elif or while statement
             if kind != tokenize.NAME or token not in {'if', 'elif', 'while'}:
                 break
-
             # expression doesn't start with parenthesis
             next_token = tokens[i + 1]
             if next_token[:2] != (tokenize.OP, '('):
                 break
-
             # expression is empty tuple
             if tokens[i + 2][:2] == (tokenize.OP, ')'):
                 break
-
             statement = token
             pos = next_token[2]
             continue
-
         # expression ends on a different line, parenthesis are necessary
         if end[0] > start_line:
             break
-
         if kind == tokenize.OP:
             if token == ',':
                 # expression is non-empty tuple
@@ -723,10 +713,8 @@ def check_redundant_parenthesis(logical_line, tokens):
                     # outer parenthesis closed before end of expression
                     if tokens[i + 1][:2] != (tokenize.OP, ':'):
                         break
-
                     return [(pos, 'A111 redundant parenthesis for {} '
                                   'statement'.format(statement))]
-
     return []
 
 
