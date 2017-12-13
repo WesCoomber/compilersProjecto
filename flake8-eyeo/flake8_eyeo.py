@@ -557,13 +557,9 @@ class TreeVisitor(ast.NodeVisitor):
     visit_ImportFrom = visit_Import
 
     def visit_Assign(self, node):
-
-        print(len(node.targets))
-        print(node.value)
-
         #analyze all assignments to variables made within loops
         if (self.loop_level > 0 and isinstance(node.targets[0], ast.Name)):
-            #loop through multiple targets if chained
+            #loop through multiple targets if chained assignment
             for i in range(0, len(node.targets)):
                 #assigning to a constant value
                 if (isinstance(node.targets[i], ast.Name) and (isinstance(node.value, ast.Str) or isinstance(node.value, ast.Num))):
