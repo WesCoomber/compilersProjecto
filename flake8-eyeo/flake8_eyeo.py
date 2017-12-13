@@ -124,10 +124,12 @@ class TreeVisitor(ast.NodeVisitor):
         self.vars_dict = {}
         self.loop_level = 0
         self.loop_stores = {}
+        self.loop_conflict = {}
 
     def _check_hoistable_line(self, node):
         for key in self.loop_stores:
-            self.errors.append((node, "A200 assignment of constant value to variable {} can be hoisted from loop at line {}".format(key, self.loop_stores[key][1])))
+            if key not in self.loop_conflict or (self.loop_conflict[key][0] < self.loop_stores[key][0]):
+                self.errors.append((node, "A200 assignment of constant value to variable {} can be hoisted from loop at line {}".format(key, self.loop_stores[key][1])))
 
         self.loop_stores = {}
         return
@@ -595,12 +597,12 @@ class TreeVisitor(ast.NodeVisitor):
                         self.loop_stores[node.targets[i].id] = [self.loop_level, node.lineno]
                     # remove dict entry if find a shallow instance
                     else:
-                        del self.loop_stores[node.targets[i].id]
+                        self.loop_conflict[node.targets[i].id] = [self.loop_level]
                 else:
                     # if assigning non-constant to variable in dict, remove
                     #   dict entry
                     if hasattr(node.targets[i], 'id') and node.targets[i].id in self.loop_stores:
-                        del self.loop_stores[node.targets[i].id]
+                        self.loop_conflict[node.targets[i].id] = [self.loop_level]
 
         # visit every assignment node in our AST to get a dictionary of all the
         #   variables in our program and all the value stored in each variable
