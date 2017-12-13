@@ -557,13 +557,19 @@ class TreeVisitor(ast.NodeVisitor):
     visit_ImportFrom = visit_Import
 
     def visit_Assign(self, node):
-        if (self.loop_level > 0 and len(node.targets) == 1 and isinstance(node.targets[0], ast.Name)):
-            if (isinstance(node.value, ast.Str) or isinstance(node.value, ast.Num)):
+
+        #analyze all assignments to variables made within loops
+        if (self.loop_level > 0 and isinstance(node.targets[0], ast.Name)):
+            #assigning to a constant value
+            if (len(node.targets) == 1 and isinstance(node.value, ast.Str) or isinstance(node.value, ast.Num)):
+                #add to dict if assigning to first instance or deepest instance of variable
                 if (node.targets[0].id not in self.loop_stores or (self.loop_stores[node.targets[0].id][0] < self.loop_level)):
                     self.loop_stores[node.targets[0].id] = [self.loop_level, node.lineno]
+                #remove dict entry if find a shallow instance
                 else:
                     del self.loop_stores[node.targets[0].id]
             else:
+                #if assigning non-constant to variable in dict, remove dict entry
                 if (node.targets[0].id in self.loop_stores):
                     del self.loop_stores[node.targets[0].id]
 
