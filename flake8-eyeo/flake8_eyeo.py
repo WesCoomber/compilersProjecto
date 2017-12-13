@@ -354,7 +354,7 @@ class TreeVisitor(ast.NodeVisitor):
                     # print(tempAttribute)
                     if tempAttribute == 'exit':
                             foundExit = True
-                    if tempAttribute in {'md2', 'md4', 'md5', 'sha'}:
+                    if tempAttribute in {'md2', 'md4', 'md5', 'sha', 'sha1'}:
                         insecure = str(tempAttribute)
                         foundBadHash = True
                 if hasattr(node.value.func, 'value'):
@@ -366,7 +366,7 @@ class TreeVisitor(ast.NodeVisitor):
                                     if hasattr(node.value.func.value.func, 'attr'):
                                         tmpAttrib = node.value.func.value.func.attr
                                         if tmpAttrib in {'md2', 'md4', 'md5',
-                                                         'sha'}:
+                                                         'sha', 'sha1'}:
                                             foundBadHash = True
                                             insecure = tmpAttrib
         # bitwise 'AND' operation on the foundSys and foundExit booleans
@@ -504,7 +504,7 @@ class TreeVisitor(ast.NodeVisitor):
         arg = next(iter(node.args), None)
         redundant_literal = False
         if str(func) in {'hashlib.md2', 'hashlib.md4', 'hashlib.md5',
-                         'hashlib.sha'}:
+                         'hashlib.sha', 'hashlib.sha1'}:
             self.errors.append((node, 'A370 insecure hash function ' + func))
 
         aesCrypto = False
