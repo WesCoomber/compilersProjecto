@@ -16,3 +16,7 @@ print hashlib.sha(2)
 x = hashlib.sha('hello')
 
 hashlib.sha(3).hexdigest()
+
+hashlib.sha256('Nobody inspects the spammish repetition').hexdigest()
+
+hashlib.sha1('Nobody inspects the spammish repetition').hexdigest()
