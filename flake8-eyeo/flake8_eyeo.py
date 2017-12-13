@@ -74,7 +74,7 @@ class FuncLister(ast.NodeVisitor):
         empty = 0
         tempBool = False
         print('If.test: ' + str(node.test))
-        #checks if the If node's test node has the attribute n (num value) and
+        # checks if the If node's test node has the attribute n (num value) and
         #   prints it if it exists
         if hasattr(node.test, 'n'):
             print('If.test.n: ' + str(node.test.n))
@@ -83,7 +83,7 @@ class FuncLister(ast.NodeVisitor):
         bodylist = node.body
         tempNum = empty
         for codeline in bodylist:
-            if (False):
+            if False:
                 print(type(codeline))
             # print(type(codeline))
             if hasattr(codeline, 'n'):
@@ -98,16 +98,16 @@ class FuncLister(ast.NodeVisitor):
                 print('body.codeline.func: ' + str(codeline.func))
             if hasattr(codeline, 's'):
                 print('body.codeline.s: ' + str(codeline.s))
-            if (tempNum):
+            if tempNum:
                 print(type(codeline))
             if hasattr(codeline, 'values'):
                 print('body.codeline.values: ' + str(codeline.values))
                 if isinstance(node, ast.Print):
                     print(type(codeline))
             print(codeline)
-        if (tempNum):
+        if tempNum:
             print(type(codeline))
-        if (tempBool):
+        if tempBool:
             print(type(codeline))
             print(tempBool)
         print('If.body: ' + str(node.body))
@@ -129,7 +129,8 @@ class TreeVisitor(ast.NodeVisitor):
 
     def _check_hoistable_line(self, node):
         for key in self.loop_stores:
-            self.errors.append((node, 'A200 assignment of constant value to variable can be hoisted from loop at line {}'.format(self.loop_stores[key][1])))
+            self.errors.append((node, "A200 assignment of constant value to variable {} can be hoisted from loop at line {}".format(key, self.loop_stores[key][1])))
+
         self.loop_stores = {}
         return
 
@@ -551,25 +552,47 @@ class TreeVisitor(ast.NodeVisitor):
                                                             alias.name))
     visit_ImportFrom = visit_Import
 
+    def _check_operands_constant(self, node):
+        # check if operand is string or num
+        if isinstance(node, ast.Str) or isinstance(node, ast.Num):
+            return True
+        # check both sides of binop
+        elif isinstance(node, ast.BinOp):
+            # check if both sides are string or num
+            left = isinstance(node.left, ast.Str) or isinstance(node.left, ast.Num)
+            right = isinstance(node.right, ast.Str) or isinstance(node.right, ast.Num)
+
+            # if either side is binop, recurse
+            if not left and isinstance(node.left, ast.BinOp):
+                left = self._check_operands_constant(node.left)
+            if not right and isinstance(node.right, ast.BinOp):
+                right = self._check_operands_constant(node.right)
+
+            return left and right
+        # otherwise, return false
+        return False
+
     def visit_Assign(self, node):
-        if (self.loop_level > 0 and len(node.targets) == 1 and
-                isinstance(node.targets[0], ast.Name)):
-            if (isinstance(node.value, ast.Str) or
-                    isinstance(node.value, ast.Num)):
-                if (node.targets[0].id not in self.loop_stores or
-                        (self.loop_stores[node.targets[0].id][0] <
-                            self.loop_level)):
-                    self.loop_stores[node.targets[0].id] = [self.loop_level,
-                                                            node.lineno]
+        # analyze all assignments to variables made within loops
+        if (self.loop_level > 0 and isinstance(node.targets[0], ast.Name)):
+            # loop through multiple targets if chained assignment
+            for i in range(0, len(node.targets)):
+                # assigning to a constant value
+                if self._check_operands_constant(node.value):
+                    # if (isinstance(node.targets[i], ast.Name) and (isinstance(node.value, ast.Str) or isinstance(node.value, ast.Num))):
+                    # add to dict if assigning to first instance or deepest instance of variable
+                    if (node.targets[i].id not in self.loop_stores or (self.loop_stores[node.targets[i].id][0] < self.loop_level)):
+                        self.loop_stores[node.targets[i].id] = [self.loop_level, node.lineno]
+                    # remove dict entry if find a shallow instance
+                    else:
+                        del self.loop_stores[node.targets[i].id]
                 else:
-                    del self.loop_stores[node.targets[0].id]
-            else:
-                if (node.targets[0].id in self.loop_stores):
-                    del self.loop_stores[node.targets[0].id]
-        # visit every assignment node in our AST to get a dictionary of all the
-        #   variables in our program and all the value stored in each variable
-        # dictionary that records this uses the var name 'eg. X' as a key, and
-        #   the value returned is the current value stored in that variable 'X'
+                    # if assigning non-constant to variable in dict, remove dict entry
+                    if (node.targets[i].id in self.loop_stores):
+                        del self.loop_stores[node.targets[i].id]
+
+        # visit every assignment node in our AST to get a dictionary of all the variables in our program and all the value stored in each variable
+        # dictionary that records this uses the var name "eg. X" as a key, and the value returned is the current value stored in that variable "X"
         if (hasattr(node, 'targets') and len(node.targets) == 1):
             if(hasattr(node, 'value')):
                 if(hasattr(node.value, 'n')):
