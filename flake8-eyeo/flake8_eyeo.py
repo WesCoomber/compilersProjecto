@@ -53,7 +53,7 @@ def get_identifier(node):
     # print '61: get_identifier'
     if isinstance(node, ast.Name):
         return node.id
-    if isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name):
+    if isinstance(node, ast.Attribute) and hasattr(node, 'value') and isinstance(node.value, ast.Name):
         return '{}.{}'.format(node.value.id, node.attr)
 
 
@@ -153,14 +153,14 @@ class TreeVisitor(ast.NodeVisitor):
                 leave_node = node
             if can_have_unused_expr or not isinstance(node, ast.Expr):
                 continue
-            if docstring and i == 0 and isinstance(node.value, ast.Str):
+            if docstring and i == 0 and hasattr(node, 'value') and isinstance(node.value, ast.Str):
                 continue
             non_literal_expr_nodes = (ast.Call, ast.Yield)
             try:
                 non_literal_expr_nodes += (ast.YieldFrom,)
             except AttributeError:
                 pass
-            if isinstance(node.value, non_literal_expr_nodes):
+            if hasattr(node, 'value') and isinstance(node.value, non_literal_expr_nodes):
                 continue
             self.errors.append((node, 'A203 unused expression'))
         if pass_node:
@@ -357,15 +357,16 @@ class TreeVisitor(ast.NodeVisitor):
                         foundBadHash = True
                 if hasattr(node.value.func, 'value'):
                     if hasattr(node.value.func.value, 'func'):
-                        if hasattr(node.value.func.value.func.value, 'id'):
-                            if node.value.func.value.func.value.id is 'hashlib':
-                                foundHashlib = True
-                                if hasattr(node.value.func.value.func, 'attr'):
-                                    tmpAttrib = node.value.func.value.func.attr
-                                    if tmpAttrib in {'md2', 'md4', 'md5',
-                                                     'sha'}:
-                                        foundBadHash = True
-                                        insecure = tmpAttrib
+                        if hasattr(node.value.func.value.func, 'value'):
+                            if hasattr(node.value.func.value.func.value, 'id'):
+                                if node.value.func.value.func.value.id is 'hashlib':
+                                    foundHashlib = True
+                                    if hasattr(node.value.func.value.func, 'attr'):
+                                        tmpAttrib = node.value.func.value.func.attr
+                                        if tmpAttrib in {'md2', 'md4', 'md5',
+                                                         'sha'}:
+                                            foundBadHash = True
+                                            insecure = tmpAttrib
         # bitwise 'AND' operation on the foundSys and foundExit booleans
         # This means we only do stuff if the sys python module is invoked, and
         #   the specific method from the sys module is exit()
