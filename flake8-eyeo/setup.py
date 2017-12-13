@@ -108,8 +108,7 @@ setup(
             'A    = flake8_eyeo:check_ast',
             'A1   = flake8_eyeo:check_quotes',
             'A111 = flake8_eyeo:check_redundant_parenthesis',
-            'A303 = flake8_eyeo:check_non_default_encoding',
-            'A371 = flake8_eyeo:check_insecure_cipher_mode'
+            'A303 = flake8_eyeo:check_non_default_encoding'
         ],
     },
     cmdclass={'test': TestCommand}

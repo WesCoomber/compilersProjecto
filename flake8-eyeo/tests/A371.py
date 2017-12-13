@@ -1,13 +1,16 @@
-import os
+#!/usr/bin/python
+from Crypto.Cipher import AES
+from Crypto import Random
 
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-from cryptography.hazmat.backends import default_backend
+obj = AES.new('Thisisakey123456', AES.MODE_ECB)
+message = 'Sample text.....'
+ciphertext = obj.encrypt(message)
+print ciphertext
 
-backend = default_backend()
-key = os.urandom(32)
-iv = os.urandom(16)
-cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=backend)
-encryptor = cipher.encryptor()
-ct = encryptor.update(b"a secret message") + encryptor.finalize()
-decryptor = cipher.decryptor()
-print(decryptor.update(ct) + decryptor.finalize())
+BLOCK_SIZE = 16  # Bytes
+iv = Random.new().read(AES.block_size)
+
+obj = AES.new('Thisisakey123456', AES.MODE_CBC, iv)
+message = 'Sample text.....'
+ciphertext = obj.encrypt(message)
+print ciphertext

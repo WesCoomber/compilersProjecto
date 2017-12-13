@@ -55,8 +55,6 @@ def get_identifier(node):
         return node.id
     if isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name):
         return '{}.{}'.format(node.value.id, node.attr)
-    if isinstance(node, ast.Attribute):
-        print node
 
 
 def get_statement(node):
@@ -336,6 +334,7 @@ class TreeVisitor(ast.NodeVisitor):
                 if hasattr(node.value.func, 'value'):
                     if hasattr(node.value.func.value, 'id'):
                         tempExpression = node.value.func.value.id
+                        # print '339: ' + tempExpression
                         if tempExpression == 'sys':
                             foundSys = True
                         elif tempExpression is 'hashlib':
@@ -357,29 +356,20 @@ class TreeVisitor(ast.NodeVisitor):
                         insecure = str(tempAttribute)
                         foundBadHash = True
                 if hasattr(node.value.func, 'value'):
-                    # print '365: ',
-                    # print node.value.func.value
-                    # print dir(node.value.func.value)
                     if hasattr(node.value.func.value, 'func'):
                         if hasattr(node.value.func.value.func.value, 'id'):
-                            # print '369: ',
-                            # print node.value.func.value.func
                             if node.value.func.value.func.value.id is 'hashlib':
                                 foundHashlib = True
-                                # print 'it's a hashlib'
-                                # print dir(node.value.func.value.func)
-                                # if
                                 if hasattr(node.value.func.value.func, 'attr'):
                                     tmpAttrib = node.value.func.value.func.attr
                                     if tmpAttrib in {'md2', 'md4', 'md5',
                                                      'sha'}:
-                                        # print 'found bad thing! ' + tmpAttrib
                                         foundBadHash = True
                                         insecure = tmpAttrib
         # bitwise 'AND' operation on the foundSys and foundExit booleans
         # This means we only do stuff if the sys python module is invoked, and
         #   the specific method from the sys module is exit()
-        if (foundSys & foundExit):
+        if foundSys and foundExit:
             tempStr = ('A424 dead code after sys.exit() expression on line ' +
                        str(node.lineno) + '.\n')
             self.errors.append((node, tempStr))
@@ -507,17 +497,33 @@ class TreeVisitor(ast.NodeVisitor):
                                       '{}()'.format(substitute, name)))
 
     def visit_Call(self, node):
-        # print 'visit_Call'
         func = get_identifier(node.func)
         arg = next(iter(node.args), None)
         redundant_literal = False
-        # print arg
-        # print func
-        # print dir(arg)
         if str(func) in {'hashlib.md2', 'hashlib.md4', 'hashlib.md5',
                          'hashlib.sha'}:
-            # print 'found a bad ' + func
             self.errors.append((node, 'A370 insecure hash function ' + func))
+
+        aesCrypto = False
+        insecureCrypto = False
+        badMode = ''
+
+        if hasattr(node, 'func'):
+            if hasattr(node.func, 'value'):
+                if hasattr(node.func.value, 'id'):
+                    aesCrypto = True
+
+        if hasattr(node, 'args'):
+            for arg in node.args:
+                if hasattr(arg, 'attr'):
+                    if arg.attr in {'MODE_ECB', 'MODE_CBC'}:
+                        insecureCrypto = True
+                        badMode = arg.attr
+
+        if aesCrypto and insecureCrypto:
+            self.errors.append((node, 'A371 insecure cipher block mode: ' +
+                                badMode))
+
         if isinstance(arg, ast.Lambda):
             if len(node.args) == 2 and func in {'map', 'filter',
                                                 'imap', 'ifilter',
@@ -557,7 +563,7 @@ class TreeVisitor(ast.NodeVisitor):
         if isinstance(node, ast.Str) or isinstance(node, ast.Num):
             return True
         # check both sides of binop
-        elif isinstance(node, ast.BinOp):
+        if isinstance(node, ast.BinOp):
             # check if both sides are string or num
             left = isinstance(node.left, ast.Str) or isinstance(node.left, ast.Num)
             right = isinstance(node.right, ast.Str) or isinstance(node.right, ast.Num)
@@ -574,33 +580,39 @@ class TreeVisitor(ast.NodeVisitor):
 
     def visit_Assign(self, node):
         # analyze all assignments to variables made within loops
-        if (self.loop_level > 0 and isinstance(node.targets[0], ast.Name)):
+        if self.loop_level > 0 and isinstance(node.targets[0], ast.Name):
             # loop through multiple targets if chained assignment
             for i in range(0, len(node.targets)):
                 # assigning to a constant value
                 if self._check_operands_constant(node.value):
-                    # if (isinstance(node.targets[i], ast.Name) and (isinstance(node.value, ast.Str) or isinstance(node.value, ast.Num))):
-                    # add to dict if assigning to first instance or deepest instance of variable
+                    # if (isinstance(node.targets[i], ast.Name) and
+                    #   (isinstance(node.value, ast.Str) or
+                    #    isinstance(node.value, ast.Num))):
+                    # add to dict if assigning to first instance or deepest
+                    #   instance of variable
                     if (node.targets[i].id not in self.loop_stores or (self.loop_stores[node.targets[i].id][0] < self.loop_level)):
                         self.loop_stores[node.targets[i].id] = [self.loop_level, node.lineno]
                     # remove dict entry if find a shallow instance
                     else:
                         del self.loop_stores[node.targets[i].id]
                 else:
-                    # if assigning non-constant to variable in dict, remove dict entry
-                    if (node.targets[i].id in self.loop_stores):
+                    # if assigning non-constant to variable in dict, remove
+                    #   dict entry
+                    if node.targets[i].id in self.loop_stores:
                         del self.loop_stores[node.targets[i].id]
 
-        # visit every assignment node in our AST to get a dictionary of all the variables in our program and all the value stored in each variable
-        # dictionary that records this uses the var name "eg. X" as a key, and the value returned is the current value stored in that variable "X"
-        if (hasattr(node, 'targets') and len(node.targets) == 1):
-            if(hasattr(node, 'value')):
-                if(hasattr(node.value, 'n')):
-                    if(hasattr(node.targets[0], 'id')):
+        # visit every assignment node in our AST to get a dictionary of all the
+        #   variables in our program and all the value stored in each variable
+        # dictionary that records this uses the var name "eg. X" as a key, and
+        #   the value returned is the current value stored in that variable "X"
+        if hasattr(node, 'targets') and len(node.targets) == 1:
+            if hasattr(node, 'value'):
+                if hasattr(node.value, 'n'):
+                    if hasattr(node.targets[0], 'id'):
                         self.vars_dict[node.targets[0].id] = node.value.n
                         # print(self.vars_dict[node.targets[0].id])
-                if(hasattr(node.value, 'id')):
-                    if(hasattr(node.targets[0], 'id')):
+                if hasattr(node.value, 'id'):
+                    if hasattr(node.targets[0], 'id'):
                         self.vars_dict[node.targets[0].id] = node.value.id
                         # print(self.vars_dict[node.targets[0].id])
         if isinstance(node.value, ast.BinOp) and len(node.targets) == 1:
@@ -741,20 +753,7 @@ def check_redundant_parenthesis(logical_line, tokens):
     return []
 
 
-# def check_insecure_hash(physical_line):
-#     match = re.search(r'(md2|md4|md5|sha)', physical_line, re.IGNORECASE)
-#     if match:
-#         return (0, 'A370 insecure hash function ' + match.group(0))
-
-
-def check_insecure_cipher_mode(physical_line):
-    match = re.search(r'CBC|ECB', physical_line, re.IGNORECASE)
-    if match:
-        return (0, 'A371 insecure cipher block mode ' + match.group(0))
-
-
 for checker in [check_ast, check_non_default_encoding, check_quotes,
-                check_redundant_parenthesis,
-                check_insecure_cipher_mode]:
+                check_redundant_parenthesis]:
     checker.name = 'eyeo'
     checker.version = __version__
