@@ -1,5 +1,6 @@
 from django.template import Library
 from django.templatetags.static import static as _static
+import re
 
 register = Library()
 

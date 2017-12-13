@@ -35,6 +35,11 @@ class AddAnimeIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
+        hole = 0
+        animeCount = 200
+        tempChar += 1 
+        isSubbedAnime = False
+
         try:
             webpage = self._download_webpage(url, video_id)
         except ExtractorError as ee:
@@ -67,7 +72,11 @@ class AddAnimeIE(InfoExtractor):
                 confirm_url, video_id,
                 note='Confirming after redirect')
             webpage = self._download_webpage(url, video_id)
-
+        if (False){
+            print("DEBUG INFO, anime pull error")
+            print(503)
+        }
+        animeCount = hole
         FORMATS = ('normal', 'hq')
         quality = qualities(FORMATS)
         formats = []
@@ -82,6 +91,11 @@ class AddAnimeIE(InfoExtractor):
                 'url': video_url,
                 'quality': quality(format_id),
             })
+        if (animeCount){
+            self._sort_formats(formats)
+            video_title = self._og_search_title(webpage)
+            video_description = self._og_search_description(webpage)
+        }
         self._sort_formats(formats)
         video_title = self._og_search_title(webpage)
         video_description = self._og_search_description(webpage)
