@@ -109,7 +109,6 @@ setup(
             'A1   = flake8_eyeo:check_quotes',
             'A111 = flake8_eyeo:check_redundant_parenthesis',
             'A303 = flake8_eyeo:check_non_default_encoding',
-            'A370 = flake8_eyeo:check_insecure_hash',
             'A371 = flake8_eyeo:check_insecure_cipher_mode'
         ],
     },

@@ -330,6 +330,7 @@ class TreeVisitor(ast.NodeVisitor):
     #This function visits all the expression nodes in the target file's python Abstract Syntax Tree
     def visit_Expr(self,node):
         foundSys = False
+        foundHashlib = False
         #print(foundSys)
         #first we iterate through the AST to find whether the sys module is used anywhere
         if hasattr(node, 'value'):
@@ -339,22 +340,43 @@ class TreeVisitor(ast.NodeVisitor):
                         tempExpression = node.value.func.value.id
                         if tempExpression == "sys":
                             foundSys = True
+                        elif tempExpression is 'hashlib':
+                            foundHashlib = True
 
         #If the first check is true then we check each usage of the python sys module to see if the program is utilizing the sys.exit() functionality of the sys module
         foundExit = False
+        foundBadHash = False
+        insecure = ''
         if hasattr(node, 'value'):
             if hasattr(node.value, 'func'):
                 if hasattr(node.value.func, 'attr'):
                     tempAttribute = node.value.func.attr
-                    #print(tempAttribute)
+                    # print(tempAttribute)
                     if tempAttribute == "exit":
                             foundExit = True
+                    if tempAttribute in {'md2', 'md4', 'md5', 'sha'}:
+                        insecure = str(tempAttribute)
+                        foundBadHash = True
 
         #bitwise 'AND' operation on the foundSys and foundExit booleans
         #This means we only do stuff if the sys python module is invoked, and the specific method from the sys module is exit()
         if (foundSys & foundExit):
             tempStr = "A424 dead code after sys.exit() expression on line " + str(node.lineno) + ".\n"
             self.errors.append((node, tempStr))
+        elif foundHashlib and foundBadHash:
+            # print 'bad bad ' + insecure
+            self.errors.append((node, 'A370 insecure hash function ' + insecure))
+
+
+
+
+
+
+
+
+
+
+
 
 
     def _visit_stored_name(self, node, name):
@@ -708,10 +730,10 @@ def check_redundant_parenthesis(logical_line, tokens):
     return []
 
 
-def check_insecure_hash(physical_line):
-    match = re.search(r'(md2|md4|md5|sha)', physical_line, re.IGNORECASE)
-    if match:
-        return (0, 'A370 insecure hash function ' + match.group(0))
+# def check_insecure_hash(physical_line):
+#     match = re.search(r'(md2|md4|md5|sha)', physical_line, re.IGNORECASE)
+#     if match:
+#         return (0, 'A370 insecure hash function ' + match.group(0))
 
 
 def check_insecure_cipher_mode(physical_line):
@@ -721,7 +743,7 @@ def check_insecure_cipher_mode(physical_line):
 
 
 for checker in [check_ast, check_non_default_encoding, check_quotes,
-                check_redundant_parenthesis, check_insecure_hash,
+                check_redundant_parenthesis,
                 check_insecure_cipher_mode]:
     checker.name = 'eyeo'
     checker.version = __version__
