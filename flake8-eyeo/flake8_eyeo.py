@@ -556,13 +556,36 @@ class TreeVisitor(ast.NodeVisitor):
 
     visit_ImportFrom = visit_Import
 
+
+    def _check_operands_constant(self, node):
+        #check if operand is string or num
+        if isinstance(node, ast.Str) or isinstance(node, ast.Num):
+            return True
+        #check both sides of binop
+        elif isinstance(node, ast.BinOp):
+            # check if both sides are string or num
+            left = isinstance(node.left, ast.Str) or isinstance(node.left, ast.Num)
+            right = isinstance(node.right, ast.Str) or isinstance(node.right, ast.Num)
+
+            #if either side is binop, recurse
+            if not left and isinstance(node.left, ast.BinOp):
+                left = self._check_operands_constant(node.left)
+            if not right and isinstance(node.right, ast.BinOp):
+                right = self._check_operands_constant(node.right)
+
+            return left and right
+        #otherwise, return false
+        return False
+
     def visit_Assign(self, node):
+
         #analyze all assignments to variables made within loops
         if (self.loop_level > 0 and isinstance(node.targets[0], ast.Name)):
             #loop through multiple targets if chained assignment
             for i in range(0, len(node.targets)):
-                #assigning to a constant value
-                if (isinstance(node.targets[i], ast.Name) and (isinstance(node.value, ast.Str) or isinstance(node.value, ast.Num))):
+                # assigning to a constant value
+                if self._check_operands_constant(node.value):
+                #if (isinstance(node.targets[i], ast.Name) and (isinstance(node.value, ast.Str) or isinstance(node.value, ast.Num))):
                     #add to dict if assigning to first instance or deepest instance of variable
                     if (node.targets[i].id not in self.loop_stores or (self.loop_stores[node.targets[i].id][0] < self.loop_level)):
                         self.loop_stores[node.targets[i].id] = [self.loop_level, node.lineno]
