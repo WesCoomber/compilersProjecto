@@ -6,7 +6,7 @@ Oh boy flake8 improvements
 A [flake8](https://flake8.readthedocs.io) extension that checks for some bugs and bad practices which flake8 doesn't
 handle by default. The flake8-Smart plug-in focuses on security and optimization for the target python file.
 
-//TODO NEED TO RENAME 'FLAKE8-EYEO' TO A NEW ORIGINAL NAME (FOR EXAMPLE FLAKE8-SMART) AND FIX THE INSTALLATION FILES FOR THE NEW NAMED PLUG-IN.
+//TODO NEED TO RENAME 'FLAKE8-EYEO' TO A NEW ORIGINAL NAME (FOR EXAMPLE 'FLAKE8-SMART') AND FIX THE INSTALLATION FILES FOR THE NEW NAMED PLUG-IN.
 
 ## Installation
 
@@ -30,10 +30,10 @@ After installation the `flake8-Smart` extension is active by default.
 * `A421`: Dead code after if() constant number value
 * `A422`: Dead code after conditional evaluating constant boolean value
 * `A423`: Dead code after a conditional statement that is indirectly given a constant value
-* `A200`: Redundant or superfluos constant assignment within a loop
+* `A200`: Redundant or superfluous constant assignment within a loop
 
 =======
-TODO:
+TODO: expand this.
 
 Commands to generate results:
 cd python_repository/python_code
