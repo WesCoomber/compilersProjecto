@@ -124,12 +124,18 @@ class TreeVisitor(ast.NodeVisitor):
         self.vars_dict = {}
         self.loop_level = 0
         self.loop_stores = {}
+        self.loop_conflict = {}
+        self.in_if = False
+        self.loop_use = {}
 
     def _check_hoistable_line(self, node):
         for key in self.loop_stores:
-            self.errors.append((node, "A200 assignment of constant value to variable {} can be hoisted from loop at line {}".format(key, self.loop_stores[key][1])))
+            if key not in self.loop_conflict or (self.loop_conflict[key][0] < self.loop_stores[key][0]):
+                self.errors.append((node, "A200 assignment of constant value to variable {} can be hoisted from loop at line {}".format(key, self.loop_stores[key][1])))
 
         self.loop_stores = {}
+        self.loop_conflict = {}
+        self.loop_use = {}
         return
 
     def _visit_block(self, nodes, block_required=False,
@@ -293,11 +299,13 @@ class TreeVisitor(ast.NodeVisitor):
                 self.errors.append((node, tempStr))
 
     def visit_If(self, node):
+        self.in_if = True
         self._visit_block(node.body, block_required=bool(node.orelse))
         self._visit_block(node.orelse)
         self._check_redundant_else(node, [node], 'if')
         self._check_if(node)
         self.generic_visit(node)
+        self.in_if = False
 
     def visit_Try(self, node):
         self._visit_block(node.body, can_have_unused_expr=bool(node.handlers))
@@ -387,6 +395,8 @@ class TreeVisitor(ast.NodeVisitor):
             self.errors.append((node, 'A302 redefined built-in ' + name))
 
     def visit_Name(self, node):
+        if node.id not in self.loop_use or self.loop_use[node.id][0] < self.loop_level:
+            self.loop_use[node.id] = [self.loop_level]
         if isinstance(node.ctx, (ast.Store, ast.Param)):
             self._visit_stored_name(node, node.id)
 
@@ -579,8 +589,21 @@ class TreeVisitor(ast.NodeVisitor):
         # otherwise, return false
         return False
 
+
+    def visit_AugAssign(self, node):
+
+        if self.loop_level > 0 and hasattr(node, 'target') and hasattr(node.target, 'id'):
+            self.loop_conflict[node.target.id] = [self.loop_level]
+
+        self.generic_visit(node)
+
+
     def visit_Assign(self, node):
         # analyze all assignments to variables made within loops
+        # if hasattr(node, 'value'):
+        #     if isinstance(node.value, ast.AugOp):
+        #         print('hey')
+
         if self.loop_level > 0 and hasattr(node, 'targets') and isinstance(node.targets[0], ast.Name):
             # loop through multiple targets if chained assignment
             for i in range(0, len(node.targets)):
@@ -591,16 +614,18 @@ class TreeVisitor(ast.NodeVisitor):
                     #    isinstance(node.value, ast.Num))):
                     # add to dict if assigning to first instance or deepest
                     #   instance of variable
-                    if hasattr(node.targets[i], 'id') and (node.targets[i].id not in self.loop_stores or (self.loop_stores[node.targets[i].id][0] < self.loop_level)):
+                    if hasattr(node.targets[i], 'id') and not self.in_if \
+                        and (node.targets[i].id not in self.loop_stores or (self.loop_stores[node.targets[i].id][0] < self.loop_level)) \
+                        and (node.targets[i].id not in self.loop_use or (self.loop_use[node.targets[i].id][0] < self.loop_level)):
                         self.loop_stores[node.targets[i].id] = [self.loop_level, node.lineno]
                     # remove dict entry if find a shallow instance
                     else:
-                        del self.loop_stores[node.targets[i].id]
+                        self.loop_conflict[node.targets[i].id] = [self.loop_level]
                 else:
                     # if assigning non-constant to variable in dict, remove
                     #   dict entry
-                    if hasattr(node.targets[i], 'id') and node.targets[i].id in self.loop_stores:
-                        del self.loop_stores[node.targets[i].id]
+                    if hasattr(node.targets[i], 'id'):
+                        self.loop_conflict[node.targets[i].id] = [self.loop_level]
 
         # visit every assignment node in our AST to get a dictionary of all the
         #   variables in our program and all the value stored in each variable
@@ -624,6 +649,7 @@ class TreeVisitor(ast.NodeVisitor):
             if left_is_target:
                 self.errors.append((node, 'A106 use augment assignment, '
                                           'e.g. x += y instead x = x + y'))
+
         # for key in self.vars_dict:
         #     print key, self.vars_dict[key]
         # print '\n'
