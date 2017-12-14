@@ -25,3 +25,19 @@ f = 'howdy'
 while 1 > 7:
     for i in range(0, 3):
         h = 'hi'
+
+for i in range(0, 3):
+    x = 1
+    while True:
+        x += 3
+    print x
+
+for i in range(0, 3):
+    if e > 1:
+        k = 3
+
+for i in range(0, 3):
+    j = 3
+    while True:
+        print j
+        j = 2
