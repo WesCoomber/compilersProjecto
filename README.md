@@ -13,7 +13,7 @@ handle by default. The flake8-Smart plug-in focuses on security and optimization
 ## Installation
 
 Run `python setup.py install`.
-
+//TODO EDIT THE SETUP.PY FILE TO WORK WITH OUR NEW PLUG-IN NAME
 
 ## Usage
 
