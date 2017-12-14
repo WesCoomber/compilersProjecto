@@ -1,0 +1,1 @@
+cat our_plugin_sorted.log | awk -F '/' '{print $2}' | awk -F ':' '{print$1}' | sort -u > files_we_triggered_on.log

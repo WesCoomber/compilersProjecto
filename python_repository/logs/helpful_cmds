@@ -1,0 +1,1 @@
+cat our_plugin_sorted.log | awk -F ':' '{print $4}' | awk -F ' ' '{print $1}' | sort | uniq -c
