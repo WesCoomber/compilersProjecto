@@ -3,8 +3,9 @@ Oh boy flake8 improvements
 
 # flake8-Smart
 
-A [flake8](https://flake8.readthedocs.io) extension that checks for some bad practices which flake8 doesn't
+A [flake8](https://flake8.readthedocs.io) extension that checks for some bugs and bad practices which flake8 doesn't
 handle by default. The flake8-Smart plug-in focuses on security and optimization for the target python file.
+
 //TODO NEED TO RENAME 'FLAKE8-EYEO' TO A NEW ORIGINAL NAME (FOR EXAMPLE FLAKE8-SMART) AND FIX THE INSTALLATION FILES FOR THE NEW NAMED PLUG-IN.
 
 ## Installation
