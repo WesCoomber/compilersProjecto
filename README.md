@@ -1,17 +1,33 @@
 # compilersProjecto
 Oh boy flake8 improvements
 
-helloWorldTest.py is the test file that I am running flake8 on with this command:
-flake8 helloWorldTest.py
+# flake8-Smart
 
-I get these warnings on the helloWorldTest.py file:
+A [flake8](https://flake8.readthedocs.io) extension that checks for some bad practices which flake8 doesn't
+handle by default. The flake8-Smart plug-in focuses on security and optimization for the target python file.
+//TODO NEED TO RENAME 'FLAKE8-EYEO' TO A NEW ORIGINAL NAME (FOR EXAMPLE FLAKE8-SMART) AND FIX THE INSTALLATION FILES FOR THE NEW NAMED PLUG-IN.
+
+## Installation
+
+Run `python setup.py install`.
 
 
-helloWorldTest.py:3:5: F841 local variable 'a' is assigned to but never used
-helloWorldTest.py:7:11: A101 use lists for data that have order
-helloWorldTest.py:15:3: A111 wesTEST redundant parenthesis for if statement
-helloWorldTest.py:19:3: A111 wesTEST redundant parenthesis for if statement
+## Usage
 
-TODO:
-Warning for if(0) and if(False), everything inside that if statement is dead code
-Warning for dead code after sys.exit
+Just run `flake8` (you have to install it seperately) on your source files.
+After installation the `flake8-Smart` extension is active by default.
+
+## Warnings
+
+### Security and Safety
+
+* `A370`: Insecure hash function usage
+* `A371`: Insecure cipher block modes
+
+### Redundancy and complexity
+
+* `A421`: Dead code after if() constant number value
+* `A422`: Dead code after conditional evaluating constant boolean value
+* `A423`: Dead code after a conditional statement that is indirectly given a constant value
+* `A200`: Redundant or superfluos constant assignment within a loop
+

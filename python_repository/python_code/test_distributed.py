@@ -22,6 +22,7 @@ MASTER_ADDR = '127.0.0.1'
 if not dist.is_available():
     print('Distributed not available, skipping tests')
     sys.exit(0)
+    print('abaasdfsa not available, skipping tests')
 
 SKIP_IF_NO_CUDA_EXIT_CODE = 75
 
