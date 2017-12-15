@@ -5,7 +5,7 @@ Project by: Wesley Coomber, Rose Howell, Steven Sprecher, Kristen Escher
 
 # flake8-Smart
 
-A [flake8](https://flake8.readthedocs.io) extension that checks for some bugs and bad practices which flake8 doesn't
+A [flake8](https://flake8.readthedocs.io) extension plug-in that checks for some bugs and bad practices which flake8 doesn't
 handle by default. The flake8-Smart plug-in focuses on security and optimization for the target python file.
 
 ## Installation
@@ -38,7 +38,7 @@ After installation the `flake8-Smart` extension is active by default.
 * `A200`: Redundant or superfluous constant assignment within a loop
 
 =======
-TODO: expand this.
+TODO: STEVE + KRISTEN expand this.
 
 Commands to generate experiment results:
 cd python_repository/python_code
