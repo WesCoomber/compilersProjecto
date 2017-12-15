@@ -110,8 +110,6 @@ class FuncLister(ast.NodeVisitor):
             print(tempBool)
         print('If.body: ' + str(node.body))
         print('If.orelse: ' + str(node.orelse))
-        # fields = ast.dump(node)
-        # print('If.ast.dump: ' + str(fields))
         self.generic_visit(node)
 
 
@@ -591,7 +589,7 @@ class TreeVisitor(ast.NodeVisitor):
 
 
     def visit_AugAssign(self, node):
-
+        # add each augmented assignment in a loop to the dictionary for later check for potential conflicts
         if self.loop_level > 0 and hasattr(node, 'target') and hasattr(node.target, 'id'):
             self.loop_conflict[node.target.id] = [self.loop_level]
 
@@ -600,18 +598,11 @@ class TreeVisitor(ast.NodeVisitor):
 
     def visit_Assign(self, node):
         # analyze all assignments to variables made within loops
-        # if hasattr(node, 'value'):
-        #     if isinstance(node.value, ast.AugOp):
-        #         print('hey')
-
         if self.loop_level > 0 and hasattr(node, 'targets') and isinstance(node.targets[0], ast.Name):
             # loop through multiple targets if chained assignment
             for i in range(0, len(node.targets)):
                 # assigning to a constant value
                 if hasattr(node, 'value') and self._check_operands_constant(node.value):
-                    # if (isinstance(node.targets[i], ast.Name) and
-                    #   (isinstance(node.value, ast.Str) or
-                    #    isinstance(node.value, ast.Num))):
                     # add to dict if assigning to first instance or deepest
                     #   instance of variable
                     if hasattr(node.targets[i], 'id') and not self.in_if \
@@ -650,9 +641,6 @@ class TreeVisitor(ast.NodeVisitor):
                 self.errors.append((node, 'A106 use augment assignment, '
                                           'e.g. x += y instead x = x + y'))
 
-        # for key in self.vars_dict:
-        #     print key, self.vars_dict[key]
-        # print '\n'
         self.generic_visit(node)
 
     def _visit_hash_keys(self, nodes, what):
