@@ -8,10 +8,8 @@ Project by: Wesley Coomber, Rose Howell, Steven Sprecher, Kristen Escher
 A [flake8](https://flake8.readthedocs.io) extension that checks for some bugs and bad practices which flake8 doesn't
 handle by default. The flake8-Smart plug-in focuses on security and optimization for the target python file.
 
-//TODO NEED TO RENAME 'FLAKE8-EYEO' TO A NEW ORIGINAL NAME (FOR EXAMPLE 'FLAKE8-SMART') AND FIX THE INSTALLATION FILES FOR THE NEW NAMED PLUG-IN.
-
 ## Installation
-Go to /codingtools/flake8-Smart directory. For example "/Users/wcoomber/codingtools/flake8-Smart"
+Go to /codingtools/flake8-Smart directory. (For example `/Users/wcoomber/codingtools/flake8-Smart`)
 Run `python setup.py install`.
 //TODO EDIT THE SETUP.PY FILE TO WORK WITH OUR NEW PLUG-IN NAME
 
