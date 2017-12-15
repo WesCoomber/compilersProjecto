@@ -379,7 +379,8 @@ class TreeVisitor(ast.NodeVisitor):
         if foundSys and foundExit:
             tempStr = ('A424 dead code after sys.exit() expression on line ' +
                        str(node.lineno) + '.\n')
-            self.errors.append((node, tempStr))
+            #disabled wiP 12/14
+            #self.errors.append((node, tempStr))
         elif foundHashlib and foundBadHash:
             # print 'bad bad ' + insecure
             self.errors.append((node, 'A370 insecure hash function ' +
