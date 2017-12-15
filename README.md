@@ -37,8 +37,9 @@ After installation the `flake8-Smart` extension is active by default.
 * `A423`: Dead code after a conditional statement that is indirectly given a constant value
 * `A200`: Redundant or superfluous constant assignment within a loop
 
-=======
+
 ##Instructions on reproducing our results.
+=======
 
 Commands to generate experiment results:
 cd python_repository/python_code
