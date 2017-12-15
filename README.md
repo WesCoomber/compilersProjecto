@@ -1,5 +1,5 @@
 # compilersProjecto
-Extending flake8 linting rules
+Extending flake8 linting rules.  
 Project by: Wesley Coomber, Rose Howell, Steven Sprecher, Kristen Escher
 
 # flake8-Smart
@@ -23,9 +23,9 @@ $ python setup.py install .
 
 ## Usage
 
-After installation, the `flake8-Smart` extension is active by default.
-Verify this by checking `flake8 --version` for the flake8-Smart extension.
-To lint a file, run `flake8 test.py` where `test.py` is the file you would like to lint.
+After installation, the `flake8-Smart` extension is active by default.  
+Verify this by checking `flake8 --version` for the flake8-Smart extension.  
+To lint a file, run `flake8 test.py` where `test.py` is the file you would like to lint.  
 
 ## New Linter Warnings
 
@@ -44,10 +44,10 @@ To lint a file, run `flake8 test.py` where `test.py` is the file you would like 
 
 ## The structure of the directory
 
-Base dir of the project is `/compilersProjecto/`
-Our plug-in is in `/compilersProjecto/flake8-Smart/flake8_Smart.py`
-Our results are in `/compilersProjecto/our_stuff.log`
-A PDF of our report is in `/compilersProjecto/linter.pdf`
+Base dir of the project is `/compilersProjecto/`  
+Our plug-in is in `/compilersProjecto/flake8-Smart/flake8_Smart.py`  
+Our results are in `/compilersProjecto/our_stuff.log`  
+A PDF of our report is in `/compilersProjecto/linter.pdf`  
 
 ```
 compilersProjecto
