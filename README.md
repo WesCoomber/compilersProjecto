@@ -37,6 +37,12 @@ After installation the `flake8-Smart` extension is active by default.
 * `A423`: Dead code after a conditional statement that is indirectly given a constant value
 * `A200`: Redundant or superfluous constant assignment within a loop
 
+## Describe the structure of the directory
+
+base dir of the project is /codingtools/
+our plug-in is in the /codingtools/flake8-Smart/flake8_Smart.py
+our results are in the /codingtools/our_stuff.log file
+
 
 ## Instructions on reproducing our results.
 =======
