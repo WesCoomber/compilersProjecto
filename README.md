@@ -11,7 +11,7 @@ handle by default. The flake8-Smart plug-in focuses on security and optimization
 //TODO NEED TO RENAME 'FLAKE8-EYEO' TO A NEW ORIGINAL NAME (FOR EXAMPLE 'FLAKE8-SMART') AND FIX THE INSTALLATION FILES FOR THE NEW NAMED PLUG-IN.
 
 ## Installation
-
+Go to /codingtools/flake8-Smart directory. For example "/Users/wcoomber/codingtools/flake8-Smart"
 Run `python setup.py install`.
 //TODO EDIT THE SETUP.PY FILE TO WORK WITH OUR NEW PLUG-IN NAME
 
