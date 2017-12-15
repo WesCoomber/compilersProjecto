@@ -9,9 +9,14 @@ A [flake8](https://flake8.readthedocs.io) extension that checks for some bugs an
 handle by default. The flake8-Smart plug-in focuses on security and optimization for the target python file.
 
 ## Installation
+First install base flake8 linter tool.
+To install Flake8, open an interactive shell and run:
+
+`python<version> -m pip install flake8`
+
+Then install the new flake8-plugin called flake8-Smart.
 Go to /codingtools/flake8-Smart directory. (For example `/Users/wcoomber/codingtools/flake8-Smart`)
 Run `python setup.py install`.
-//TODO EDIT THE SETUP.PY FILE TO WORK WITH OUR NEW PLUG-IN NAME
 
 ## Usage
 
@@ -35,9 +40,9 @@ After installation the `flake8-Smart` extension is active by default.
 =======
 TODO: expand this.
 
-Commands to generate results:
+Commands to generate experiment results:
 cd python_repository/python_code
-#make sure you have flake8-eyeo + plugin 
+#make sure you have flake8-eyeo + flake8-Smart plugin 
 flake8 * > ../logs/our_stuff.log
 cd ..
 python2.7 remove_new_rules /logs/our_stuff.log /logs/our_plugin_sorted.log /logs/eyeo_sorted.log
