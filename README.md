@@ -38,7 +38,7 @@ After installation the `flake8-Smart` extension is active by default.
 * `A200`: Redundant or superfluous constant assignment within a loop
 
 =======
-Instructions on reproducing our results.
+##Instructions on reproducing our results.
 
 Commands to generate experiment results:
 cd python_repository/python_code
