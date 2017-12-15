@@ -5,7 +5,7 @@ Project by: Wesley Coomber, Rose Howell, Steven Sprecher, Kristen Escher
 
 # flake8-Smart
 
-A [flake8](https://flake8.readthedocs.io) extension plug-in that checks for some bugs and bad practices which flake8 doesn't
+A [flake8](https://flake8.readthedocs.io) linter plug-in that checks for some bugs and bad practices which flake8 doesn't
 handle by default. The flake8-Smart plug-in focuses on security and optimization for the target python file.
 
 ## Installation
