@@ -42,6 +42,7 @@ After installation the `flake8-Smart` extension is active by default.
 base dir of the project is /codingtools/
 our plug-in is in the /codingtools/flake8-Smart/flake8_Smart.py
 our results are in the /codingtools/our_stuff.log file
+a PDF of our report is in /codingtools/linterProjecto.pdf (version 9:19PM 12/14 change this pdf file if we are submitting later)
 
 
 ## Instructions on reproducing our results.
